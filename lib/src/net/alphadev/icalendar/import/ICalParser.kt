@@ -1,11 +1,8 @@
 package net.alphadev.icalendar.import
 
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.format.Padding
-import kotlinx.datetime.format.char
 import net.alphadev.icalendar.model.*
 import kotlin.time.Instant
 
@@ -34,7 +31,6 @@ private fun parseVCalendar(iterator: Iterator<ContentLine>): VCalendar? {
     val (properties, components) = parseComponentBody("VCALENDAR", iterator)
     val calendar = VCalendar(properties, components)
 
-    // Build timezone map and resolve instants
     val timezoneMap = calendar.timezones.mapNotNull { tz ->
         tz.tzid?.let { it to tz }
     }.toMap()
@@ -125,7 +121,6 @@ private fun ICalComponent.resolveInstants(timezones: Map<String, VTimezone>): IC
 
 private fun ICalProperty.resolveInstant(timezones: Map<String, VTimezone>): ICalProperty {
     if (!isDateTimeProperty()) return this
-
     val resolved = tryParseInstant(timezones)
     return if (resolved != null) copy(instant = resolved) else this
 }
@@ -146,16 +141,17 @@ private fun ICalProperty.tryParseInstant(timezones: Map<String, VTimezone>): Ins
     return try {
         when {
             valueType.equals("DATE", ignoreCase = true) || (!v.contains("T") && v.length == 8) -> {
-                val date = iCalDateFormat.parse(v)
+                val date = parseICalDate(v) ?: return null
                 val resolver = TimezoneResolver.from(tzid, timezones)
                 val midnight = LocalDateTime(date.year, date.month, date.day, 0, 0, 0)
                 resolver.resolve(midnight)
             }
             v.endsWith("Z") -> {
-                iCalDateTimeFormat.parse(v.dropLast(1)).toInstant(TimeZone.UTC)
+                val ldt = parseICalDateTime(v.dropLast(1)) ?: return null
+                ldt.toInstant(TimeZone.UTC)
             }
             else -> {
-                val localDateTime = iCalDateTimeFormat.parse(v)
+                val localDateTime = parseICalDateTime(v) ?: return null
                 val resolver = TimezoneResolver.from(tzid, timezones)
                 resolver.resolve(localDateTime)
             }
@@ -163,20 +159,4 @@ private fun ICalProperty.tryParseInstant(timezones: Map<String, VTimezone>): Ins
     } catch (_: Exception) {
         null
     }
-}
-
-private val iCalDateFormat = LocalDate.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-}
-
-private val iCalDateTimeFormat = LocalDateTime.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-    char('T')
-    hour(Padding.ZERO)
-    minute(Padding.ZERO)
-    second(Padding.ZERO)
 }

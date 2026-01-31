@@ -7,10 +7,10 @@ import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.format.Padding
-import kotlinx.datetime.format.char
+import net.alphadev.icalendar.model.iCalDateFormat
+import net.alphadev.icalendar.model.iCalDateTimeFormat
+import net.alphadev.icalendar.model.formatUtc
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -194,22 +194,3 @@ class VAlarmBuilder {
 
 enum class EventStatus { TENTATIVE, CONFIRMED, CANCELLED }
 enum class Transparency { OPAQUE, TRANSPARENT }
-
-private val iCalDateFormat = LocalDate.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-}
-
-private val iCalDateTimeFormat = LocalDateTime.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-    char('T')
-    hour(Padding.ZERO)
-    minute(Padding.ZERO)
-    second(Padding.ZERO)
-}
-
-internal fun Instant.formatUtc(): String =
-    iCalDateTimeFormat.format(toLocalDateTime(TimeZone.UTC)) + "Z"
