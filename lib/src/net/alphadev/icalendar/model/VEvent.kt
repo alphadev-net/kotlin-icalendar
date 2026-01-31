@@ -79,18 +79,12 @@ fun ICalProperty.toInstant(): Instant? {
     val zone = tzid?.let { TimeZone.of(it) } ?: TimeZone.UTC
 
     return when {
-        valueType.equals("DATE", ignoreCase = true) || !v.contains("T") -> {
-            val date = parseICalDate(v)
-            Instant.fromEpochSeconds(date.atStartOfDayIn(zone).epochSeconds)
-        }
-        v.endsWith("Z") -> {
-            val local = parseICalDateTime(v.dropLast(1))
-            Instant.fromEpochSeconds(local.toInstant(TimeZone.UTC).epochSeconds)
-        }
-        else -> {
-            val local = parseICalDateTime(v)
-            Instant.fromEpochSeconds(local.toInstant(zone).epochSeconds)
-        }
+        valueType.equals("DATE", ignoreCase = true) || !v.contains("T") ->
+            iCalDateFormat.parse(v).atStartOfDayIn(zone)
+        v.endsWith("Z") ->
+            iCalDateTimeFormat.parse(v.dropLast(1)).toInstant(TimeZone.UTC)
+        else ->
+            iCalDateTimeFormat.parse(v).toInstant(zone)
     }
 }
 
@@ -109,7 +103,3 @@ private val iCalDateTimeFormat = LocalDateTime.Format {
     minute(Padding.ZERO)
     second(Padding.ZERO)
 }
-
-private fun parseICalDate(value: String): LocalDate = LocalDate.parse(value, iCalDateFormat)
-
-private fun parseICalDateTime(value: String): LocalDateTime = LocalDateTime.parse(value, iCalDateTimeFormat)
