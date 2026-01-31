@@ -63,6 +63,9 @@ private fun parseNestedComponent(name: String, iterator: Iterator<ContentLine>):
         VEvent.NAME -> VEvent(properties, components)
         VAlarm.NAME -> VAlarm(properties, components)
         VCalendar.NAME -> VCalendar(properties, components)
+        VTimezone.NAME -> VTimezone(properties, components)
+        VTimezoneRule.Standard.NAME -> VTimezoneRule.Standard(properties)
+        VTimezoneRule.Daylight.NAME -> VTimezoneRule.Daylight(properties)
         else -> UnknownComponent(name, properties, components)
     }
 }
