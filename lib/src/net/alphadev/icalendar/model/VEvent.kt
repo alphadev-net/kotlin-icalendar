@@ -4,9 +4,10 @@ import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.UtcOffset
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
+import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.format.char
 
 data class VEvent(
     override val properties: List<ICalProperty>,
@@ -108,21 +109,22 @@ fun ICalProperty.toICalTemporal(): ICalTemporal? {
     }
 }
 
-private fun parseICalDate(value: String): LocalDate {
-    require(value.length == 8) { "Invalid iCal date: $value" }
-    val year = value.substring(0, 4).toInt()
-    val month = value.substring(4, 6).toInt()
-    val day = value.substring(6, 8).toInt()
-    return LocalDate(year, month, day)
+private val iCalDateFormat = LocalDate.Format {
+    year()
+    monthNumber()
+    dayOfMonth()
 }
 
-private fun parseICalDateTime(value: String): LocalDateTime {
-    require(value.length == 15 && value[8] == 'T') { "Invalid iCal datetime: $value" }
-    val year = value.substring(0, 4).toInt()
-    val month = value.substring(4, 6).toInt()
-    val day = value.substring(6, 8).toInt()
-    val hour = value.substring(9, 11).toInt()
-    val minute = value.substring(11, 13).toInt()
-    val second = value.substring(13, 15).toInt()
-    return LocalDateTime(year, month, day, hour, minute, second)
+private val iCalDateTimeFormat = LocalDateTime.Format {
+    year()
+    monthNumber()
+    dayOfMonth()
+    char('T')
+    hour()
+    minute()
+    second()
 }
+
+private fun parseICalDate(value: String): LocalDate = LocalDate.parse(value, iCalDateFormat)
+
+private fun parseICalDateTime(value: String): LocalDateTime = LocalDateTime.parse(value, iCalDateTimeFormat)
