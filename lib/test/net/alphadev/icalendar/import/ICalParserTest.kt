@@ -4,9 +4,10 @@ import net.alphadev.icalendar.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class ICalParserTest {
 
@@ -54,10 +55,14 @@ class ICalParserTest {
         val event = calendars.first().events.first()
 
         assertTrue(event.isAllDay)
-        val dtStart = event.dtStart as ICalTemporal.Date
-        assertEquals(2024, dtStart.date.year)
-        assertEquals(1, dtStart.date.monthNumber)
-        assertEquals(20, dtStart.date.day)
+
+        val dtStart = event.dtStart
+        assertNotNull(dtStart)
+        val local = dtStart.toLocalDateTime(TimeZone.UTC)
+        assertEquals(2024, local.year)
+        assertEquals(1, local.monthNumber)
+        assertEquals(20, local.dayOfMonth)
+        assertEquals(0, local.hour) // midnight
     }
 
     @Test
@@ -79,9 +84,14 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val event = calendars.first().events.first()
 
-        val dtStart = event.dtStart as ICalTemporal.DateTime
-        assertEquals("America/New_York", dtStart.tzid)
-        assertEquals(9, dtStart.dateTime.hour)
+        // Verify TZID is preserved in the property
+        assertEquals("America/New_York", event.dtStartProperty?.tzid)
+
+        // The Instant should represent 9am New York time (14:00 UTC in January)
+        val dtStart = event.dtStart
+        assertNotNull(dtStart)
+        val utc = dtStart.toLocalDateTime(TimeZone.UTC)
+        assertEquals(14, utc.hour) // 9am EST = 2pm UTC
     }
 
     @Test
@@ -103,8 +113,10 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val event = calendars.first().events.first()
 
-        val dtStart = event.dtStart as ICalTemporal.DateTimeUtc
-        assertNotNull(dtStart.instant)
+        val dtStart = event.dtStart
+        assertNotNull(dtStart)
+        val utc = dtStart.toLocalDateTime(TimeZone.UTC)
+        assertEquals(14, utc.hour)
     }
 
     @Test
@@ -343,6 +355,8 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val event = calendars.first().events.first()
 
+        // Note: whether to unescape depends on your parser design
+        // This test expects escaped chars to remain as-is
         assertEquals("Meeting\\, with\\; special\\ncharacters", event.summary)
     }
 
@@ -564,8 +578,13 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val event = calendars.first().events.first()
 
-        val dtStart = event.dtStart as ICalTemporal.DateTime
-        assertNull(dtStart.tzid)
-        assertEquals(9, dtStart.dateTime.hour)
+        // No TZID on the property
+        assertEquals(null, event.dtStartProperty?.tzid)
+
+        // Floating time treated as UTC per design decision
+        val dtStart = event.dtStart
+        assertNotNull(dtStart)
+        val utc = dtStart.toLocalDateTime(TimeZone.UTC)
+        assertEquals(9, utc.hour)
     }
 }

@@ -1,10 +1,6 @@
 package net.alphadev.icalendar.model
 
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 data class VAlarm(
@@ -15,36 +11,43 @@ data class VAlarm(
     companion object { const val NAME = "VALARM" }
 }
 
-enum class AlarmAction {
-    AUDIO, DISPLAY, EMAIL;
-    companion object {
-        fun fromString(value: String): AlarmAction? =
-            entries.find { it.name.equals(value, ignoreCase = true) }
-    }
-}
+enum class AlarmAction { DISPLAY, AUDIO, EMAIL, PROCEDURE }
 
 sealed interface AlarmTrigger {
+    enum class RelatedTo { START, END }
+
     data class Relative(
         val duration: Duration,
         val relatedTo: RelatedTo = RelatedTo.START
     ) : AlarmTrigger
 
-    data class Absolute(val dateTime: ICalTemporal) : AlarmTrigger
-
-    enum class RelatedTo { START, END }
+    data class Absolute(val instant: Instant) : AlarmTrigger
 }
 
 val VAlarm.action: AlarmAction?
-    get() = properties.firstOrNull { it.name == "ACTION" }?.value?.let { AlarmAction.fromString(it) }
-
-val VAlarm.actionRaw: String?
-    get() = properties.firstOrNull { it.name == "ACTION" }?.value
-
-val VAlarm.triggerProperty: ICalProperty?
-    get() = properties.firstOrNull { it.name == "TRIGGER" }
+    get() = properties.firstOrNull { it.name == "ACTION" }?.value?.let { value ->
+        AlarmAction.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+    }
 
 val VAlarm.trigger: AlarmTrigger?
-    get() = triggerProperty?.toAlarmTrigger()
+    get() {
+        val prop = properties.firstOrNull { it.name == "TRIGGER" } ?: return null
+        val value = prop.value
+
+        // Absolute trigger (DATE-TIME value)
+        if (prop.valueType.equals("DATE-TIME", ignoreCase = true)) {
+            return prop.toInstant()?.let { AlarmTrigger.Absolute(it) }
+        }
+
+        // Relative trigger (DURATION value, default)
+        val relatedTo = when (prop.parameter("RELATED")?.uppercase()) {
+            "END" -> AlarmTrigger.RelatedTo.END
+            else -> AlarmTrigger.RelatedTo.START
+        }
+
+        val duration = parseICalDuration(value) ?: return null
+        return AlarmTrigger.Relative(duration, relatedTo)
+    }
 
 val VAlarm.description: String?
     get() = properties.firstOrNull { it.name == "DESCRIPTION" }?.value
@@ -52,82 +55,56 @@ val VAlarm.description: String?
 val VAlarm.summary: String?
     get() = properties.firstOrNull { it.name == "SUMMARY" }?.value
 
-val VAlarm.repeat: Int?
-    get() = properties.firstOrNull { it.name == "REPEAT" }?.value?.toIntOrNull()
-
-val VAlarm.repeatDuration: Duration?
-    get() = properties.firstOrNull { it.name == "DURATION" }?.value?.parseICalDuration()
+val VAlarm.attendees: List<String>
+    get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }
 
 val VAlarm.attach: String?
     get() = properties.firstOrNull { it.name == "ATTACH" }?.value
 
-val VAlarm.attendees: List<String>
-    get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }
+val VAlarm.repeat: Int?
+    get() = properties.firstOrNull { it.name == "REPEAT" }?.value?.toIntOrNull()
 
-fun ICalProperty.toAlarmTrigger(): AlarmTrigger? {
-    val v = value.trim()
-    if (v.isEmpty()) return null
+val VAlarm.repeatDuration: Duration?
+    get() = properties.firstOrNull { it.name == "DURATION" }?.value?.let { parseICalDuration(it) }
 
-    val isAbsolute = valueType.equals("DATE-TIME", ignoreCase = true)
-
-    return if (isAbsolute) {
-        toICalTemporal()?.let { AlarmTrigger.Absolute(it) }
-    } else {
-        val duration = v.parseICalDuration() ?: return null
-        val relatedTo = when (parameter("RELATED")?.uppercase()) {
-            "END" -> AlarmTrigger.RelatedTo.END
-            else -> AlarmTrigger.RelatedTo.START
-        }
-        AlarmTrigger.Relative(duration, relatedTo)
-    }
-}
-
-fun String.parseICalDuration(): Duration? {
-    val input = this.trim()
+internal fun parseICalDuration(value: String): Duration? {
+    val input = value.trim()
     if (input.isEmpty()) return null
 
-    var index = 0
-    val isNegative = when {
-        input.startsWith('-') -> { index++; true }
-        input.startsWith('+') -> { index++; false }
-        else -> false
-    }
+    var idx = 0
+    val negative = if (input[idx] == '-') { idx++; true } else { if (input[idx] == '+') idx++; false }
 
-    if (input.getOrNull(index) != 'P') return null
-    index++
+    if (idx >= input.length || input[idx] != 'P') return null
+    idx++
 
-    var totalDuration = Duration.ZERO
-    var inTimePart = false
+    var totalSeconds = 0L
+    var inTime = false
 
-    while (index < input.length) {
-        val char = input[index]
-
-        if (char == 'T') {
-            inTimePart = true
-            index++
+    while (idx < input.length) {
+        if (input[idx] == 'T') {
+            inTime = true
+            idx++
             continue
         }
 
-        val numStart = index
-        while (index < input.length && input[index].isDigit()) {
-            index++
-        }
+        val numStart = idx
+        while (idx < input.length && input[idx].isDigit()) idx++
+        if (idx == numStart) return null
 
-        if (index == numStart || index >= input.length) break
+        val num = input.substring(numStart, idx).toLongOrNull() ?: return null
+        if (idx >= input.length) return null
 
-        val num = input.substring(numStart, index).toLongOrNull() ?: return null
-        val unit = input[index]
-        index++
-
-        totalDuration += when (unit) {
-            'W' -> (num * 7).days
-            'D' -> num.days
-            'H' -> num.hours
-            'M' -> num.minutes
-            'S' -> num.seconds
+        val unit = input[idx++]
+        totalSeconds += when {
+            unit == 'W' -> num * 7 * 24 * 3600
+            unit == 'D' -> num * 24 * 3600
+            unit == 'H' && inTime -> num * 3600
+            unit == 'M' && inTime -> num * 60
+            unit == 'S' && inTime -> num
             else -> return null
         }
     }
 
-    return if (isNegative) -totalDuration else totalDuration
+    val seconds = if (negative) -totalSeconds else totalSeconds
+    return Duration.parseIsoStringOrNull("PT${seconds}S")
 }

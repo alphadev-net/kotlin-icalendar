@@ -8,6 +8,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.number
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -154,7 +155,7 @@ enum class Transparency { OPAQUE, TRANSPARENT }
 
 private fun LocalDateTime.formatIcal(): String = buildString {
     append(year.toString().padStart(4, '0'))
-    append(monthNumber.toString().padStart(2, '0'))
+    append(month.number.toString().padStart(2, '0'))
     append(dayOfMonth.toString().padStart(2, '0'))
     append('T')
     append(hour.toString().padStart(2, '0'))
@@ -164,7 +165,7 @@ private fun LocalDateTime.formatIcal(): String = buildString {
 
 private fun LocalDate.formatIcal(): String = buildString {
     append(year.toString().padStart(4, '0'))
-    append(monthNumber.toString().padStart(2, '0'))
+    append(month.number.toString().padStart(2, '0'))
     append(dayOfMonth.toString().padStart(2, '0'))
 }
 
@@ -172,8 +173,8 @@ internal fun Instant.formatUtc(): String {
     val dt = toLocalDateTime(TimeZone.UTC)
     return buildString {
         append(dt.year.toString().padStart(4, '0'))
-        append(dt.monthNumber.toString().padStart(2, '0'))
-        append(dt.day.toString().padStart(2, '0'))
+        append(dt.month.number.toString().padStart(2, '0'))
+        append(dt.dayOfMonth.toString().padStart(2, '0'))
         append('T')
         append(dt.hour.toString().padStart(2, '0'))
         append(dt.minute.toString().padStart(2, '0'))

@@ -9,6 +9,8 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 class ICalDslTest {
 
@@ -97,11 +99,13 @@ class ICalDslTest {
         }
 
         val event = calendar.events.first()
-        val dtStart = event.dtStart as ICalTemporal.DateTime
-        assertEquals(2024, dtStart.dateTime.year)
-        assertEquals(6, dtStart.dateTime.monthNumber)
-        assertEquals(15, dtStart.dateTime.dayOfMonth)
-        assertEquals(10, dtStart.dateTime.hour)
+        val dtStart = event.dtStart
+        assertNotNull(dtStart)
+        val utc = dtStart.toLocalDateTime(TimeZone.UTC)
+        assertEquals(2024, utc.year)
+        assertEquals(6, utc.monthNumber)
+        assertEquals(15, utc.dayOfMonth)
+        assertEquals(10, utc.hour)
     }
 
     @Test
@@ -117,8 +121,7 @@ class ICalDslTest {
         }
 
         val event = calendar.events.first()
-        val dtStart = event.dtStart as ICalTemporal.DateTime
-        assertEquals("America/New_York", dtStart.tzid)
+        assertEquals("America/New_York", event.dtStartProperty?.tzid)
     }
 
     @Test
@@ -135,10 +138,12 @@ class ICalDslTest {
 
         val event = calendar.events.first()
         assertTrue(event.isAllDay)
-        val dtStart = event.dtStart as ICalTemporal.Date
-        assertEquals(2024, dtStart.date.year)
-        assertEquals(6, dtStart.date.monthNumber)
-        assertEquals(15, dtStart.date.day)
+        val dtStart = event.dtStart
+        assertNotNull(dtStart)
+        val utc = dtStart.toLocalDateTime(TimeZone.UTC)
+        assertEquals(2024, utc.year)
+        assertEquals(6, utc.monthNumber)
+        assertEquals(15, utc.dayOfMonth)
     }
 
     @Test

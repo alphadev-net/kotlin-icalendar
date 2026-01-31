@@ -6,7 +6,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.format.DateTimeComponents
+import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 
 data class VEvent(
@@ -47,23 +47,24 @@ val VEvent.dtStartProperty: ICalProperty?
 val VEvent.dtEndProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTEND" }
 
-val VEvent.dtStart: ICalTemporal?
-    get() = dtStartProperty?.toICalTemporal()
+val VEvent.dtStart: Instant?
+    get() = dtStartProperty?.toInstant()
 
-val VEvent.dtEnd: ICalTemporal?
-    get() = dtEndProperty?.toICalTemporal()
+val VEvent.dtEnd: Instant?
+    get() = dtEndProperty?.toInstant()
 
 val VEvent.dtStamp: Instant?
-    get() = properties.firstOrNull { it.name == "DTSTAMP" }?.toICalTemporal()?.toInstant()
+    get() = properties.firstOrNull { it.name == "DTSTAMP" }?.toInstant()
 
 val VEvent.created: Instant?
-    get() = properties.firstOrNull { it.name == "CREATED" }?.toICalTemporal()?.toInstant()
+    get() = properties.firstOrNull { it.name == "CREATED" }?.toInstant()
 
 val VEvent.lastModified: Instant?
-    get() = properties.firstOrNull { it.name == "LAST-MODIFIED" }?.toICalTemporal()?.toInstant()
+    get() = properties.firstOrNull { it.name == "LAST-MODIFIED" }?.toInstant()
 
 val VEvent.isAllDay: Boolean
-    get() = dtStart is ICalTemporal.Date
+    get() = dtStartProperty?.valueType.equals("DATE", ignoreCase = true)
+            || (dtStartProperty?.value?.contains("T") == false)
 
 val VEvent.alarms: List<VAlarm>
     get() = components.filterIsInstance<VAlarm>()
@@ -71,58 +72,42 @@ val VEvent.alarms: List<VAlarm>
 val VEvent.hasAlarms: Boolean
     get() = components.any { it is VAlarm }
 
-sealed interface ICalTemporal {
-    data class Date(val date: LocalDate) : ICalTemporal
-    data class DateTime(val dateTime: LocalDateTime, val tzid: String?) : ICalTemporal
-    data class DateTimeUtc(val instant: Instant) : ICalTemporal
-
-    fun toInstant(defaultZone: TimeZone = TimeZone.currentSystemDefault()): Instant = when (this) {
-        is Date -> Instant.fromEpochSeconds(date.atStartOfDayIn(defaultZone).epochSeconds)
-        is DateTime -> {
-            val zone = tzid?.let { TimeZone.of(it) } ?: defaultZone
-            Instant.fromEpochSeconds(dateTime.toInstant(zone).epochSeconds)
-        }
-        is DateTimeUtc -> instant
-    }
-}
-
-fun ICalProperty.toICalTemporal(): ICalTemporal? {
+fun ICalProperty.toInstant(): Instant? {
     val v = value.trim()
     if (v.isEmpty()) return null
 
+    val zone = tzid?.let { TimeZone.of(it) } ?: TimeZone.UTC
+
     return when {
-        valueType.equals("DATE", ignoreCase = true) -> {
-            ICalTemporal.Date(parseICalDate(v))
+        valueType.equals("DATE", ignoreCase = true) || !v.contains("T") -> {
+            val date = parseICalDate(v)
+            Instant.fromEpochSeconds(date.atStartOfDayIn(zone).epochSeconds)
         }
         v.endsWith("Z") -> {
             val local = parseICalDateTime(v.dropLast(1))
-            val epochSeconds = local.toInstant(TimeZone.UTC).epochSeconds
-            ICalTemporal.DateTimeUtc(Instant.fromEpochSeconds(epochSeconds))
-        }
-        v.contains("T") -> {
-            val local = parseICalDateTime(v)
-            ICalTemporal.DateTime(local, tzid)
+            Instant.fromEpochSeconds(local.toInstant(TimeZone.UTC).epochSeconds)
         }
         else -> {
-            ICalTemporal.Date(parseICalDate(v))
+            val local = parseICalDateTime(v)
+            Instant.fromEpochSeconds(local.toInstant(zone).epochSeconds)
         }
     }
 }
 
 private val iCalDateFormat = LocalDate.Format {
-    year()
-    monthNumber()
-    dayOfMonth()
+    year(Padding.ZERO)
+    monthNumber(Padding.ZERO)
+    dayOfMonth(Padding.ZERO)
 }
 
 private val iCalDateTimeFormat = LocalDateTime.Format {
-    year()
-    monthNumber()
-    dayOfMonth()
+    year(Padding.ZERO)
+    monthNumber(Padding.ZERO)
+    dayOfMonth(Padding.ZERO)
     char('T')
-    hour()
-    minute()
-    second()
+    hour(Padding.ZERO)
+    minute(Padding.ZERO)
+    second(Padding.ZERO)
 }
 
 private fun parseICalDate(value: String): LocalDate = LocalDate.parse(value, iCalDateFormat)
