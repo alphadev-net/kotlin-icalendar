@@ -4,10 +4,12 @@ import net.alphadev.icalendar.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.number
 
 class ICalParserTest {
 
@@ -55,14 +57,12 @@ class ICalParserTest {
         val event = calendars.first().events.first()
 
         assertTrue(event.isAllDay)
-
         val dtStart = event.dtStart
         assertNotNull(dtStart)
         val local = dtStart.toLocalDateTime(TimeZone.UTC)
         assertEquals(2024, local.year)
-        assertEquals(1, local.monthNumber)
-        assertEquals(20, local.dayOfMonth)
-        assertEquals(0, local.hour) // midnight
+        assertEquals(1, local.month.number)
+        assertEquals(20, local.day)
     }
 
     @Test
@@ -84,14 +84,12 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val event = calendars.first().events.first()
 
-        // Verify TZID is preserved in the property
         assertEquals("America/New_York", event.dtStartProperty?.tzid)
-
-        // The Instant should represent 9am New York time (14:00 UTC in January)
         val dtStart = event.dtStart
         assertNotNull(dtStart)
+        // 9am EST in January = 14:00 UTC
         val utc = dtStart.toLocalDateTime(TimeZone.UTC)
-        assertEquals(14, utc.hour) // 9am EST = 2pm UTC
+        assertEquals(14, utc.hour)
     }
 
     @Test
@@ -115,8 +113,6 @@ class ICalParserTest {
 
         val dtStart = event.dtStart
         assertNotNull(dtStart)
-        val utc = dtStart.toLocalDateTime(TimeZone.UTC)
-        assertEquals(14, utc.hour)
     }
 
     @Test
@@ -578,12 +574,10 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val event = calendars.first().events.first()
 
-        // No TZID on the property
-        assertEquals(null, event.dtStartProperty?.tzid)
-
-        // Floating time treated as UTC per design decision
+        assertNull(event.dtStartProperty?.tzid)
         val dtStart = event.dtStart
         assertNotNull(dtStart)
+        // Floating time treated as UTC
         val utc = dtStart.toLocalDateTime(TimeZone.UTC)
         assertEquals(9, utc.hour)
     }

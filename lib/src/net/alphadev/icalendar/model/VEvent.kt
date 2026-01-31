@@ -97,13 +97,13 @@ fun ICalProperty.toInstant(): Instant? {
 private val iCalDateFormat = LocalDate.Format {
     year(Padding.ZERO)
     monthNumber(Padding.ZERO)
-    dayOfMonth(Padding.ZERO)
+    day(Padding.ZERO)
 }
 
 private val iCalDateTimeFormat = LocalDateTime.Format {
     year(Padding.ZERO)
     monthNumber(Padding.ZERO)
-    dayOfMonth(Padding.ZERO)
+    day(Padding.ZERO)
     char('T')
     hour(Padding.ZERO)
     minute(Padding.ZERO)

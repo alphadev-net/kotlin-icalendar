@@ -11,6 +11,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.number
 
 class ICalDslTest {
 
@@ -103,8 +104,8 @@ class ICalDslTest {
         assertNotNull(dtStart)
         val utc = dtStart.toLocalDateTime(TimeZone.UTC)
         assertEquals(2024, utc.year)
-        assertEquals(6, utc.monthNumber)
-        assertEquals(15, utc.dayOfMonth)
+        assertEquals(6, utc.month.number)
+        assertEquals(15, utc.day)
         assertEquals(10, utc.hour)
     }
 
@@ -142,8 +143,8 @@ class ICalDslTest {
         assertNotNull(dtStart)
         val utc = dtStart.toLocalDateTime(TimeZone.UTC)
         assertEquals(2024, utc.year)
-        assertEquals(6, utc.monthNumber)
-        assertEquals(15, utc.dayOfMonth)
+        assertEquals(6, utc.month.number)
+        assertEquals(15, utc.day)
     }
 
     @Test
