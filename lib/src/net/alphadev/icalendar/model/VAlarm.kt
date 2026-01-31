@@ -32,11 +32,10 @@ val VAlarm.action: AlarmAction?
 val VAlarm.trigger: AlarmTrigger?
     get() {
         val prop = properties.firstOrNull { it.name == "TRIGGER" } ?: return null
-        val value = prop.value
 
         // Absolute trigger (DATE-TIME value)
         if (prop.valueType.equals("DATE-TIME", ignoreCase = true)) {
-            return prop.toInstant()?.let { AlarmTrigger.Absolute(it) }
+            return prop.instant?.let { AlarmTrigger.Absolute(it) }
         }
 
         // Relative trigger (DURATION value, default)
@@ -45,7 +44,7 @@ val VAlarm.trigger: AlarmTrigger?
             else -> AlarmTrigger.RelatedTo.START
         }
 
-        val duration = parseICalDuration(value) ?: return null
+        val duration = parseICalDuration(prop.value) ?: return null
         return AlarmTrigger.Relative(duration, relatedTo)
     }
 

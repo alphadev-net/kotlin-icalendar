@@ -23,5 +23,11 @@ val VCalendar.method: String?
 val VCalendar.events: List<VEvent>
     get() = components.filterIsInstance<VEvent>()
 
+val VCalendar.timezones: List<VTimezone>
+    get() = components.filterIsInstance<VTimezone>()
+
 fun VCalendar.eventByUid(uid: String): VEvent? =
     events.firstOrNull { it.uid == uid }
+
+fun VCalendar.timezoneByTzid(tzid: String): VTimezone? =
+    timezones.firstOrNull { it.tzid == tzid }
