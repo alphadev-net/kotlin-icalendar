@@ -1,0 +1,16 @@
+product:
+  type: lib
+  platforms: [jvm, android, iosArm64, iosSimulatorArm64, iosX64]
+
+dependencies:
+  - $libs.kotlinx.datetime
+
+settings:
+  publishing:
+    name: kotlin-icalendar
+  kotlin:
+    optIns:
+      - kotlin.time.ExperimentalTime
+
+apply:
+  - ../publish.module-template.yaml
