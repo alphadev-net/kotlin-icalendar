@@ -8,7 +8,8 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.number
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -66,25 +67,25 @@ class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
         property("ORGANIZER", "mailto:$email", params)
     }
 
-    fun dtStart(value: LocalDateTime) = property("DTSTART", value.formatIcal())
+    fun dtStart(value: LocalDateTime) = property("DTSTART", iCalDateTimeFormat.format(value))
     fun dtStart(value: LocalDateTime, tzid: String) {
-        property("DTSTART", value.formatIcal(), mapOf("TZID" to listOf(tzid)))
+        property("DTSTART", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)))
     }
     fun dtStart(value: Instant) = property("DTSTART", value.formatUtc())
     fun dtStartDate(value: LocalDate) {
-        property("DTSTART", value.formatIcal(), mapOf("VALUE" to listOf("DATE")))
+        property("DTSTART", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")))
     }
 
-    fun dtEnd(value: LocalDateTime) = property("DTEND", value.formatIcal())
+    fun dtEnd(value: LocalDateTime) = property("DTEND", iCalDateTimeFormat.format(value))
     fun dtEnd(value: LocalDateTime, tzid: String) {
-        property("DTEND", value.formatIcal(), mapOf("TZID" to listOf(tzid)))
+        property("DTEND", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)))
     }
     fun dtEnd(value: Instant) = property("DTEND", value.formatUtc())
     fun dtEndDate(value: LocalDate) {
-        property("DTEND", value.formatIcal(), mapOf("VALUE" to listOf("DATE")))
+        property("DTEND", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")))
     }
 
-    fun duration(value: Duration) = property("DURATION", value.toIcalDuration())
+    fun duration(value: Duration) = property("DURATION", value.toIsoString())
 
     fun alarm(block: VAlarmBuilder.() -> Unit) {
         components.add(VAlarmBuilder().apply(block).build())
@@ -113,16 +114,16 @@ class VAlarmBuilder {
     fun action(value: AlarmAction) = property("ACTION", value.name)
 
     fun triggerBefore(duration: Duration) {
-        property("TRIGGER", (-duration).toIcalDuration())
+        property("TRIGGER", (-duration).toIsoString())
     }
     fun triggerAfter(duration: Duration) {
-        property("TRIGGER", duration.toIcalDuration())
+        property("TRIGGER", duration.toIsoString())
     }
     fun triggerBeforeEnd(duration: Duration) {
-        property("TRIGGER", (-duration).toIcalDuration(), mapOf("RELATED" to listOf("END")))
+        property("TRIGGER", (-duration).toIsoString(), mapOf("RELATED" to listOf("END")))
     }
     fun triggerAfterEnd(duration: Duration) {
-        property("TRIGGER", duration.toIcalDuration(), mapOf("RELATED" to listOf("END")))
+        property("TRIGGER", duration.toIsoString(), mapOf("RELATED" to listOf("END")))
     }
     fun triggerAt(instant: Instant) {
         property("TRIGGER", instant.formatUtc(), mapOf("VALUE" to listOf("DATE-TIME")))
@@ -139,7 +140,7 @@ class VAlarmBuilder {
 
     fun repeat(count: Int, interval: Duration) {
         property("REPEAT", count.toString())
-        property("DURATION", interval.toIcalDuration())
+        property("DURATION", interval.toIsoString())
     }
 
     fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
@@ -153,56 +154,21 @@ class VAlarmBuilder {
 enum class EventStatus { TENTATIVE, CONFIRMED, CANCELLED }
 enum class Transparency { OPAQUE, TRANSPARENT }
 
-private fun LocalDateTime.formatIcal(): String = buildString {
-    append(year.toString().padStart(4, '0'))
-    append(month.number.toString().padStart(2, '0'))
-    append(dayOfMonth.toString().padStart(2, '0'))
-    append('T')
-    append(hour.toString().padStart(2, '0'))
-    append(minute.toString().padStart(2, '0'))
-    append(second.toString().padStart(2, '0'))
+private val iCalDateFormat = LocalDate.Format {
+    year(Padding.ZERO)
+    monthNumber(Padding.ZERO)
+    dayOfMonth(Padding.ZERO)
 }
 
-private fun LocalDate.formatIcal(): String = buildString {
-    append(year.toString().padStart(4, '0'))
-    append(month.number.toString().padStart(2, '0'))
-    append(dayOfMonth.toString().padStart(2, '0'))
+private val iCalDateTimeFormat = LocalDateTime.Format {
+    year(Padding.ZERO)
+    monthNumber(Padding.ZERO)
+    dayOfMonth(Padding.ZERO)
+    char('T')
+    hour(Padding.ZERO)
+    minute(Padding.ZERO)
+    second(Padding.ZERO)
 }
 
-internal fun Instant.formatUtc(): String {
-    val dt = toLocalDateTime(TimeZone.UTC)
-    return buildString {
-        append(dt.year.toString().padStart(4, '0'))
-        append(dt.month.number.toString().padStart(2, '0'))
-        append(dt.dayOfMonth.toString().padStart(2, '0'))
-        append('T')
-        append(dt.hour.toString().padStart(2, '0'))
-        append(dt.minute.toString().padStart(2, '0'))
-        append(dt.second.toString().padStart(2, '0'))
-        append('Z')
-    }
-}
-
-internal fun Duration.toIcalDuration(): String = buildString {
-    val totalSeconds = inWholeSeconds
-    val isNegative = totalSeconds < 0
-    val abs = if (isNegative) -totalSeconds else totalSeconds
-
-    if (isNegative) append('-')
-    append('P')
-
-    val days = abs / 86400
-    val remainder = abs % 86400
-    val hours = remainder / 3600
-    val minutes = (remainder % 3600) / 60
-    val seconds = remainder % 60
-
-    if (days > 0) append("${days}D")
-
-    if (hours > 0 || minutes > 0 || seconds > 0 || days == 0L) {
-        append('T')
-        if (hours > 0) append("${hours}H")
-        if (minutes > 0) append("${minutes}M")
-        if (seconds > 0 || (hours == 0L && minutes == 0L)) append("${seconds}S")
-    }
-}
+internal fun Instant.formatUtc(): String =
+    iCalDateTimeFormat.format(toLocalDateTime(TimeZone.UTC)) + "Z"
