@@ -1,5 +1,7 @@
 package net.alphadev.icalendar.model
 
+import kotlin.time.Instant
+
 data class VTodo(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent>
@@ -22,13 +24,22 @@ val VTodo.description: String?
     get() = properties.firstOrNull { it.name == "DESCRIPTION" }?.value
 
 val VTodo.dtStartProperty: ICalProperty?
-    get() = properties.firstOrNull { it.name == "DTSTART" }
+    get() = properties.firstOrNull { it.name == "DTSTAMP" }
 
 val VTodo.dueProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DUE" }
 
 val VTodo.completedProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "COMPLETED" }
+
+val VTodo.dtStart: Instant?
+    get() = dtStartProperty?.instant
+
+val VTodo.due: Instant?
+    get() = dueProperty?.instant
+
+val VTodo.completed: Instant?
+    get() = completedProperty?.instant
 
 val VTodo.percentComplete: Int?
     get() = properties.firstOrNull { it.name == "PERCENT-COMPLETE" }?.value?.toIntOrNull()

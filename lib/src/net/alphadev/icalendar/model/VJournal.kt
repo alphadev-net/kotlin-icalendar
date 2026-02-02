@@ -1,5 +1,7 @@
 package net.alphadev.icalendar.model
 
+import kotlin.time.Instant
+
 data class VJournal(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent>
@@ -23,6 +25,9 @@ val VJournal.description: String?
 
 val VJournal.dtStartProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTSTART" }
+
+val VJournal.dtStart: Instant?
+    get() = dtStartProperty?.instant
 
 val VJournal.status: String?
     get() = properties.firstOrNull { it.name == "STATUS" }?.value

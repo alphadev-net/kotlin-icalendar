@@ -1,5 +1,7 @@
 package net.alphadev.icalendar.model
 
+import kotlin.time.Instant
+
 data class VFreeBusy(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent>
@@ -20,6 +22,12 @@ val VFreeBusy.dtStartProperty: ICalProperty?
 
 val VFreeBusy.dtEndProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTEND" }
+
+val VFreeBusy.dtStart: Instant?
+    get() = dtStartProperty?.instant
+
+val VFreeBusy.dtEnd: Instant?
+    get() = dtEndProperty?.instant
 
 val VFreeBusy.organizer: String?
     get() = properties.firstOrNull { it.name == "ORGANIZER" }?.value
