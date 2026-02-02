@@ -1,7 +1,6 @@
 package net.alphadev.icalendar.export
 
-internal object LineFolding {
-
+object LineFolding {
     private const val MAX_LINE_OCTETS = 75
     private const val CRLF = "\r\n"
     private const val FOLD_PREFIX = " "
@@ -11,23 +10,31 @@ internal object LineFolding {
         return foldByOctets(line)
     }
 
-    private fun foldByOctets(line: String): String {
-        val result = StringBuilder()
+    private fun foldByOctets(line: String) = buildString {
         var currentLineOctets = 0
+        var index = 0
 
-        for (char in line) {
-            val charOctetCount = char.toString().encodeToByteArray().size
-
-            if (currentLineOctets + charOctetCount > MAX_LINE_OCTETS) {
-                result.append(CRLF)
-                result.append(FOLD_PREFIX)
-                currentLineOctets = 1 // The space counts
+        while (index < line.length) {
+            // Handle surrogate pairs properly
+            val char = line[index]
+            val substring = if (char.isHighSurrogate() && index + 1 < line.length) {
+                // This is a surrogate pair, take both chars
+                line.substring(index, index + 2)
+            } else {
+                // Single char (or unpaired surrogate, which we treat as single)
+                char.toString()
             }
 
-            result.append(char)
-            currentLineOctets += charOctetCount
-        }
+            val charOctetCount = substring.encodeToByteArray().size
 
-        return result.toString()
+            if (currentLineOctets + charOctetCount > MAX_LINE_OCTETS) {
+                append(CRLF)
+                append(FOLD_PREFIX)
+                currentLineOctets = 1 // The space counts
+            }
+            append(substring)
+            currentLineOctets += charOctetCount
+            index += substring.length
+        }
     }
 }
