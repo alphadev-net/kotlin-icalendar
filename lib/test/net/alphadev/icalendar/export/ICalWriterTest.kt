@@ -1,12 +1,10 @@
 package net.alphadev.icalendar.export
 
-import net.alphadev.icalendar.dsl.*
-import net.alphadev.icalendar.model.*
-import kotlinx.datetime.LocalDateTime
+import net.alphadev.icalendar.dsl.vCalendar
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import kotlin.test.assertContains
 
 class ICalWriterTest {
 

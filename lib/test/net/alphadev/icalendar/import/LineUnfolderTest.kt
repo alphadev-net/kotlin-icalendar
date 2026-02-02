@@ -89,14 +89,16 @@ class LineUnfolderTest {
 
     @Test
     fun realWorldExample() {
-        val input = """BEGIN:VEVENT
-DTSTART:20240101T120000Z
-SUMMARY:Team Meeting
-DESCRIPTION:This is a long description that exceeds the 75 character
-  limit recommended by RFC 5545 and therefore needs to be folded across
-  multiple lines to maintain compatibility.
-LOCATION:Conference Room A
-END:VEVENT"""
+        val input = """
+            BEGIN:VEVENT
+            DTSTART:20240101T120000Z
+            SUMMARY:Team Meeting
+            DESCRIPTION:This is a long description that exceeds the 75 character
+              limit recommended by RFC 5545 and therefore needs to be folded across
+              multiple lines to maintain compatibility.
+            LOCATION:Conference Room A
+            END:VEVENT
+        """.trimIndent()
         val result = LineUnfolder.unfold(input)
         assertEquals(
             listOf(

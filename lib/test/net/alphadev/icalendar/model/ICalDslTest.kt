@@ -1,5 +1,13 @@
-package net.alphadev.icalendar.dsl
+package net.alphadev.icalendar.model
 
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
+import net.alphadev.icalendar.dsl.EventStatus
+import net.alphadev.icalendar.dsl.Transparency
+import net.alphadev.icalendar.dsl.vCalendar
 import net.alphadev.icalendar.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -7,11 +15,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.number
 
 class ICalDslTest {
 
