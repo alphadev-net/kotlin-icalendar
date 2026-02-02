@@ -64,3 +64,8 @@ val VEvent.alarms: List<VAlarm>
 
 val VEvent.hasAlarms: Boolean
     get() = components.any { it is VAlarm }
+
+val VEvent.attendees: List<VAttendee>
+    get() = properties
+        .filter { it.name == "ATTENDEE" }
+        .map { VAttendee(listOf(it)) }

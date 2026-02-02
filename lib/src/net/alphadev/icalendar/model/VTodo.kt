@@ -61,3 +61,6 @@ val VTodo.categories: List<String>
 
 val VTodo.alarms: List<VAlarm>
     get() = components.filterIsInstance<VAlarm>()
+
+val VTodo.attendees: List<String>
+    get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }

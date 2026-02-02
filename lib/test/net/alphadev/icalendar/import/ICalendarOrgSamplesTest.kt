@@ -6,6 +6,7 @@ import kotlinx.datetime.toLocalDateTime
 import net.alphadev.icalendar.model.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class ICalendarOrgSamplesTest {
 
@@ -235,5 +236,11 @@ class ICalendarOrgSamplesTest {
         assertEquals(1998, end.year)
         assertEquals(3, end.month.number)
         assertEquals(12, end.day)
+
+        val attendee = event.attendees.first()
+        assertEquals("employee-A@example.com", attendee.email)
+        assertTrue(attendee.rsvp)
+        assertEquals("REQ-PARTICIPANT", attendee.role)
+        assertEquals("GROUP", attendee.cutype)
     }
 }

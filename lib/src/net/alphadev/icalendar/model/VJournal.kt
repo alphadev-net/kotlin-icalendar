@@ -40,3 +40,6 @@ val VJournal.categories: List<String>
 
 val VJournal.attachments: List<String>
     get() = properties.filter { it.name == "ATTACH" }.map { it.value }
+
+val VJournal.attendees: List<String>
+    get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }

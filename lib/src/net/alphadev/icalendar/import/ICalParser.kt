@@ -125,6 +125,7 @@ private fun ICalComponent.resolveInstants(timezones: Map<String, VTimezone>): IC
             components = components.map { it.resolveInstants(timezones) }
         )
         is VTimezone -> this
+        is VAttendee -> this
         is StandardTimezoneRule -> this
         is DaylightTimezoneRule -> this
         is UnknownComponent -> copy(
