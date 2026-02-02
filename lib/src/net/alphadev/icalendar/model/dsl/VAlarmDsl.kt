@@ -8,8 +8,7 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 
 @ICalDsl
-class VAlarmBuilder {
-    private val properties = mutableListOf<ICalProperty>()
+class VAlarmBuilder: IComponentBuilder() {
 
     fun displayAction() = property("ACTION", "DISPLAY")
     fun audioAction() = property("ACTION", "AUDIO")
@@ -49,11 +48,6 @@ class VAlarmBuilder {
     fun repeat(count: Int, interval: Duration) {
         property("REPEAT", count.toString())
         property("DURATION", interval.toIsoString())
-    }
-
-    fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
-        properties.removeAll { it.name.equals(name, ignoreCase = true) }
-        properties.add(ICalProperty(name.uppercase(), parameters, value))
     }
 
     fun build(): VAlarm = VAlarm(properties.toList())

@@ -13,9 +13,7 @@ enum class JournalStatus { DRAFT, FINAL, CANCELLED }
 enum class JournalClass { PUBLIC, PRIVATE, CONFIDENTIAL }
 
 @ICalDsl
-class VJournalBuilder {
-    private val properties = mutableListOf<ICalProperty>()
-    private val components = mutableListOf<ICalComponent>()
+class VJournalBuilder: IComponentBuilder() {
 
     init {
         val now = Clock.System.now()
@@ -57,26 +55,6 @@ class VJournalBuilder {
     }
 
     fun attach(uri: String) = property("ATTACH", uri)
-
-    fun xProperty(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
-        require(name.startsWith("X-", ignoreCase = true)) { "Extension properties must start with X-" }
-        property(name, value, parameters)
-    }
-
-    private fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
-        properties.removeAll { it.name.equals(name, ignoreCase = true) }
-        properties.add(ICalProperty(name.uppercase(), parameters, value))
-    }
-
-    private fun propertyWithInstant(
-        name: String,
-        value: String,
-        parameters: Map<String, List<String>> = emptyMap(),
-        instant: Instant? = null
-    ) {
-        properties.removeAll { it.name.equals(name, ignoreCase = true) }
-        properties.add(ICalProperty(name.uppercase(), parameters, value, instant))
-    }
 
     fun build(): VJournal = VJournal(properties.toList(), components.toList())
 }
