@@ -3,7 +3,6 @@ package net.alphadev.icalendar.model.dsl
 import net.alphadev.icalendar.model.ICalComponent
 import net.alphadev.icalendar.model.ICalProperty
 import net.alphadev.icalendar.model.VCalendar
-import net.alphadev.icalendar.model.VJournal
 
 enum class EventStatus { TENTATIVE, CONFIRMED, CANCELLED }
 enum class Transparency { OPAQUE, TRANSPARENT }
@@ -30,6 +29,10 @@ class VCalendarBuilder {
 
     fun journal(block: VJournalBuilder.() -> Unit) {
         components.add(VJournalBuilder().apply(block).build())
+    }
+
+    fun todo(block: VTodoBuilder.() -> Unit) {
+        components.add(VTodoBuilder().apply(block).build())
     }
 
     fun build(): VCalendar = VCalendar(properties.toList(), components.toList())
