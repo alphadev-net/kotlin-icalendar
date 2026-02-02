@@ -1,9 +1,10 @@
 package net.alphadev.icalendar.export
 
-import net.alphadev.icalendar.model.*
+import net.alphadev.icalendar.model.ICalComponent
+import net.alphadev.icalendar.model.ICalProperty
+import net.alphadev.icalendar.model.VCalendar
 
 class ICalWriter(private val config: Config = Config()) {
-
     data class Config(
         val useCrLf: Boolean = true,
         val foldLines: Boolean = true
@@ -12,11 +13,19 @@ class ICalWriter(private val config: Config = Config()) {
     private val lineEnding = if (config.useCrLf) "\r\n" else "\n"
 
     fun write(calendar: VCalendar): String = buildString {
-        writeComponent(calendar)
+        writeComponent(ensureVersion(calendar))
     }
 
     fun writeAll(calendars: List<VCalendar>): String = buildString {
-        calendars.forEach { writeComponent(it) }
+        calendars.forEach { writeComponent(ensureVersion(it)) }
+    }
+
+    private fun ensureVersion(calendar: VCalendar): VCalendar {
+        val hasVersion = calendar.properties.any { it.name.equals("VERSION", ignoreCase = true) }
+        if (hasVersion) return calendar
+
+        val properties = listOf(ICalProperty("VERSION", emptyMap(), "2.0")) + calendar.properties
+        return VCalendar(properties, calendar.components)
     }
 
     private fun StringBuilder.writeComponent(component: ICalComponent) {
