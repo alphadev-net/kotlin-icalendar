@@ -1,15 +1,11 @@
 package net.alphadev.icalendar.import
 
-import net.alphadev.icalendar.model.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
+import net.alphadev.icalendar.model.*
+import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 class ICalParserTest {
 
@@ -466,7 +462,7 @@ class ICalParserTest {
     }
 
     @Test
-    fun parseUnknownComponentAsUnknownComponent() {
+    fun parseTodoComponent() {
         val ics = """
             BEGIN:VCALENDAR
             VERSION:2.0
@@ -475,6 +471,11 @@ class ICalParserTest {
             UID:todo-001
             DTSTAMP:20240115T120000Z
             SUMMARY:A Todo Item
+            DESCRIPTION:Complete the project documentation
+            STATUS:NEEDS-ACTION
+            PRIORITY:1
+            DUE:20240125T170000Z
+            PERCENT-COMPLETE:50
             END:VTODO
             END:VCALENDAR
         """.trimIndent()
@@ -482,12 +483,186 @@ class ICalParserTest {
         val calendars = parseICalendar(ics)
         val calendar = calendars.first()
 
-        assertEquals(0, calendar.events.size)
-        assertEquals(1, calendar.components.size)
+        assertEquals(1, calendar.todos.size)
+        val todo = calendar.todos.first()
 
-        val todo = calendar.components.first() as UnknownComponent
-        assertEquals("VTODO", todo.name)
-        assertEquals("A Todo Item", todo.properties.find { it.name == "SUMMARY" }?.value)
+        assertEquals("todo-001", todo.uid)
+        assertEquals("A Todo Item", todo.summary)
+        assertEquals("Complete the project documentation", todo.description)
+        assertEquals("NEEDS-ACTION", todo.status)
+        assertEquals(1, todo.priority)
+        assertEquals(50, todo.percentComplete)
+        assertNotNull(todo.dueProperty)
+    }
+
+    @Test
+    fun parseJournalComponent() {
+        val ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//EN
+            BEGIN:VJOURNAL
+            UID:journal-001
+            DTSTAMP:20240115T120000Z
+            DTSTART:20240120T090000Z
+            SUMMARY:Daily Journal Entry
+            DESCRIPTION:Today was productive. Completed code review and fixed bugs.
+            STATUS:FINAL
+            END:VJOURNAL
+            END:VCALENDAR
+        """.trimIndent()
+
+        val calendars = parseICalendar(ics)
+        val calendar = calendars.first()
+
+        assertEquals(1, calendar.journals.size)
+        val journal = calendar.journals.first()
+
+        assertEquals("journal-001", journal.uid)
+        assertEquals("Daily Journal Entry", journal.summary)
+        assertEquals("Today was productive. Completed code review and fixed bugs.", journal.description)
+        assertEquals("FINAL", journal.status)
+        assertNotNull(journal.dtStartProperty)
+    }
+
+    @Test
+    fun parseFreeBusyComponent() {
+        val ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//EN
+            BEGIN:VFREEBUSY
+            UID:freebusy-001
+            DTSTAMP:20240115T120000Z
+            DTSTART:20240120T000000Z
+            DTEND:20240121T000000Z
+            ORGANIZER:mailto:alice@example.com
+            ATTENDEE:mailto:bob@example.com
+            FREEBUSY:20240120T090000Z/20240120T100000Z
+            FREEBUSY:20240120T140000Z/20240120T150000Z
+            END:VFREEBUSY
+            END:VCALENDAR
+        """.trimIndent()
+
+        val calendars = parseICalendar(ics)
+        val calendar = calendars.first()
+
+        assertEquals(1, calendar.freeBusyItems.size)
+        val freeBusy = calendar.freeBusyItems.first()
+
+        assertEquals("freebusy-001", freeBusy.uid)
+        assertEquals("mailto:alice@example.com", freeBusy.organizer)
+        assertEquals(1, freeBusy.attendees.size)
+        assertEquals("mailto:bob@example.com", freeBusy.attendees.first())
+        assertEquals(2, freeBusy.freeBusyPeriods.size)
+        assertNotNull(freeBusy.dtStartProperty)
+        assertNotNull(freeBusy.dtEndProperty)
+    }
+
+    @Test
+    fun parseTodoWithAlarm() {
+        val ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//EN
+            BEGIN:VTODO
+            UID:todo-alarm-001
+            DTSTAMP:20240115T120000Z
+            SUMMARY:Task with Reminder
+            DUE:20240125T170000Z
+            BEGIN:VALARM
+            ACTION:DISPLAY
+            TRIGGER:-PT1H
+            DESCRIPTION:Task due in 1 hour
+            END:VALARM
+            END:VTODO
+            END:VCALENDAR
+        """.trimIndent()
+
+        val calendars = parseICalendar(ics)
+        val todo = calendars.first().todos.first()
+
+        assertEquals(1, todo.alarms.size)
+        val alarm = todo.alarms.first()
+        assertEquals(AlarmAction.DISPLAY, alarm.action)
+    }
+
+    @Test
+    fun parseCalendarWithMixedComponents() {
+        val ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//EN
+            BEGIN:VEVENT
+            UID:event-001
+            DTSTAMP:20240115T120000Z
+            DTSTART:20240120T090000Z
+            SUMMARY:Meeting
+            END:VEVENT
+            BEGIN:VTODO
+            UID:todo-001
+            DTSTAMP:20240115T120000Z
+            SUMMARY:Task
+            END:VTODO
+            BEGIN:VJOURNAL
+            UID:journal-001
+            DTSTAMP:20240115T120000Z
+            SUMMARY:Journal Entry
+            END:VJOURNAL
+            END:VCALENDAR
+        """.trimIndent()
+
+        val calendars = parseICalendar(ics)
+        val calendar = calendars.first()
+
+        assertEquals(1, calendar.events.size)
+        assertEquals(1, calendar.todos.size)
+        assertEquals(1, calendar.journals.size)
+        assertEquals("Meeting", calendar.events.first().summary)
+        assertEquals("Task", calendar.todos.first().summary)
+        assertEquals("Journal Entry", calendar.journals.first().summary)
+    }
+
+    @Test
+    fun lookupComponentsByUid() {
+        val ics = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            PRODID:-//Test//EN
+            BEGIN:VEVENT
+            UID:event-001
+            DTSTAMP:20240115T120000Z
+            DTSTART:20240120T090000Z
+            SUMMARY:Meeting
+            END:VEVENT
+            BEGIN:VTODO
+            UID:todo-001
+            DTSTAMP:20240115T120000Z
+            SUMMARY:Task
+            END:VTODO
+            BEGIN:VJOURNAL
+            UID:journal-001
+            DTSTAMP:20240115T120000Z
+            SUMMARY:Journal Entry
+            END:VJOURNAL
+            BEGIN:VFREEBUSY
+            UID:freebusy-001
+            DTSTAMP:20240115T120000Z
+            DTSTART:20240120T000000Z
+            DTEND:20240121T000000Z
+            END:VFREEBUSY
+            END:VCALENDAR
+        """.trimIndent()
+
+        val calendar = parseICalendar(ics).first()
+
+        assertNotNull(calendar.eventByUid("event-001"))
+        assertNotNull(calendar.todoByUid("todo-001"))
+        assertNotNull(calendar.journalByUid("journal-001"))
+        assertNotNull(calendar.freeBusyByUid("freebusy-001"))
+
+        assertNull(calendar.eventByUid("nonexistent"))
+        assertNull(calendar.todoByUid("nonexistent"))
     }
 
     @Test

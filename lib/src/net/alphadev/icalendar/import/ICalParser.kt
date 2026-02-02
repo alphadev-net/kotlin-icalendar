@@ -71,6 +71,9 @@ private fun parseNestedComponent(name: String, iterator: Iterator<ContentLine>):
 
     return when (name) {
         VEvent.NAME -> VEvent(properties, components)
+        VTodo.NAME -> VTodo(properties, components)
+        VJournal.NAME -> VJournal(properties, components)
+        VFreeBusy.NAME -> VFreeBusy(properties, components)
         VAlarm.NAME -> VAlarm(properties, components)
         VCalendar.NAME -> VCalendar(properties, components)
         VTimezone.NAME -> VTimezone(properties, components)
@@ -98,6 +101,18 @@ private fun VCalendar.resolveInstants(timezones: Map<String, VTimezone>): VCalen
 private fun ICalComponent.resolveInstants(timezones: Map<String, VTimezone>): ICalComponent {
     return when (this) {
         is VEvent -> copy(
+            properties = properties.map { it.resolveInstant(timezones) },
+            components = components.map { it.resolveInstants(timezones) }
+        )
+        is VTodo -> copy(
+            properties = properties.map { it.resolveInstant(timezones) },
+            components = components.map { it.resolveInstants(timezones) }
+        )
+        is VJournal -> copy(
+            properties = properties.map { it.resolveInstant(timezones) },
+            components = components.map { it.resolveInstants(timezones) }
+        )
+        is VFreeBusy -> copy(
             properties = properties.map { it.resolveInstant(timezones) },
             components = components.map { it.resolveInstants(timezones) }
         )
