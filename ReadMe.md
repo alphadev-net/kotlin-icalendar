@@ -17,9 +17,9 @@ In addition to parsing existing iCalendar files, the library provides a Kotlin D
 ### Creating an event using the DSL
 
 ```kotlin
-import net.alphadev.icalendar.dsl.vCalendar
-import net.alphadev.icalendar.dsl.EventStatus
-import net.alphadev.icalendar.dsl.Transparency
+import net.alphadev.icalendar.model.dsl.vCalendar
+import net.alphadev.icalendar.model.dsl.EventStatus
+import net.alphadev.icalendar.model.dsl.Transparency
 import kotlinx.datetime.LocalDateTime
 import kotlin.time.Duration.Companion.minutes
 

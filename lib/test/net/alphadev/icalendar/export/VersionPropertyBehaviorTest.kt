@@ -1,11 +1,11 @@
 package net.alphadev.icalendar.export
 
-import net.alphadev.icalendar.dsl.vCalendar
 import net.alphadev.icalendar.model.ICalProperty
 import net.alphadev.icalendar.model.VCalendar
+import net.alphadev.icalendar.model.dsl.vCalendar
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertContains
+import kotlin.test.assertEquals
 
 /**
  * Documents and tests the VERSION property handling behavior.

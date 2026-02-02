@@ -1,6 +1,6 @@
 package net.alphadev.icalendar.export
 
-import net.alphadev.icalendar.dsl.vCalendar
+import net.alphadev.icalendar.model.dsl.vCalendar
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals

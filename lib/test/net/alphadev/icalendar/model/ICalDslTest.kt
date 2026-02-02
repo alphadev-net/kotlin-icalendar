@@ -5,10 +5,10 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import net.alphadev.icalendar.dsl.EventStatus
-import net.alphadev.icalendar.dsl.Transparency
-import net.alphadev.icalendar.dsl.vCalendar
 import net.alphadev.icalendar.model.*
+import net.alphadev.icalendar.model.dsl.EventStatus
+import net.alphadev.icalendar.model.dsl.Transparency
+import net.alphadev.icalendar.model.dsl.vCalendar
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

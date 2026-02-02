@@ -1,48 +1,15 @@
-package net.alphadev.icalendar.dsl
+package net.alphadev.icalendar.model.dsl
 
-import net.alphadev.icalendar.model.*
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import net.alphadev.icalendar.model.iCalDateFormat
-import net.alphadev.icalendar.model.iCalDateTimeFormat
-import net.alphadev.icalendar.model.formatUtc
+import net.alphadev.icalendar.model.*
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Instant
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
-
-fun vCalendar(block: VCalendarBuilder.() -> Unit): VCalendar {
-    return VCalendarBuilder().apply(block).build()
-}
-
-@DslMarker
-annotation class ICalDsl
-
-@ICalDsl
-class VCalendarBuilder {
-    private val properties = mutableListOf<ICalProperty>()
-    private val components = mutableListOf<ICalComponent>()
-
-    init { property("VERSION", "2.0") }
-
-    fun prodId(value: String) = property("PRODID", value)
-    fun calScale(value: String) = property("CALSCALE", value)
-    fun method(value: String) = property("METHOD", value)
-
-    fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
-        properties.removeAll { it.name.equals(name, ignoreCase = true) }
-        properties.add(ICalProperty(name, parameters, value))
-    }
-
-    fun event(block: VEventBuilder.() -> Unit) {
-        components.add(VEventBuilder().apply(block).build())
-    }
-
-    fun build(): VCalendar = VCalendar(properties.toList(), components.toList())
-}
 
 @ICalDsl
 class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
@@ -148,58 +115,3 @@ class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
 
     fun build(): VEvent = VEvent(properties.toList(), components.toList())
 }
-
-@ICalDsl
-class VAlarmBuilder {
-    private val properties = mutableListOf<ICalProperty>()
-
-    fun displayAction() = property("ACTION", "DISPLAY")
-    fun audioAction() = property("ACTION", "AUDIO")
-    fun emailAction() = property("ACTION", "EMAIL")
-    fun action(value: AlarmAction) = property("ACTION", value.name)
-
-    fun triggerBefore(duration: Duration) {
-        property("TRIGGER", (-duration).toIsoString())
-    }
-
-    fun triggerAfter(duration: Duration) {
-        property("TRIGGER", duration.toIsoString())
-    }
-
-    fun triggerBeforeEnd(duration: Duration) {
-        property("TRIGGER", (-duration).toIsoString(), mapOf("RELATED" to listOf("END")))
-    }
-
-    fun triggerAfterEnd(duration: Duration) {
-        property("TRIGGER", duration.toIsoString(), mapOf("RELATED" to listOf("END")))
-    }
-
-    fun triggerAt(instant: Instant) {
-        properties.removeAll { it.name.equals("TRIGGER", ignoreCase = true) }
-        properties.add(ICalProperty("TRIGGER", mapOf("VALUE" to listOf("DATE-TIME")), instant.formatUtc(), instant))
-    }
-
-    fun description(value: String) = property("DESCRIPTION", value)
-    fun summary(value: String) = property("SUMMARY", value)
-
-    fun attendee(email: String) {
-        properties.add(ICalProperty("ATTENDEE", emptyMap(), "mailto:$email"))
-    }
-
-    fun attach(uri: String) = property("ATTACH", uri)
-
-    fun repeat(count: Int, interval: Duration) {
-        property("REPEAT", count.toString())
-        property("DURATION", interval.toIsoString())
-    }
-
-    fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
-        properties.removeAll { it.name.equals(name, ignoreCase = true) }
-        properties.add(ICalProperty(name.uppercase(), parameters, value))
-    }
-
-    fun build(): VAlarm = VAlarm(properties.toList())
-}
-
-enum class EventStatus { TENTATIVE, CONFIRMED, CANCELLED }
-enum class Transparency { OPAQUE, TRANSPARENT }
