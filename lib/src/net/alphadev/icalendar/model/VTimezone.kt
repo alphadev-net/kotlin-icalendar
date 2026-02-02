@@ -53,6 +53,11 @@ val VTimezoneRule.rrule: String?
 val VTimezoneRule.dstRule: DstRule?
     get() = rrule?.let { parseRRule(it) }
 
+val VTimezoneRule.rdates: List<LocalDateTime>
+    get() = properties
+        .filter { it.name == "RDATE" }
+        .mapNotNull { parseICalDateTime(it.value) }
+
 private fun String.parseUtcOffset(): UtcOffset? {
     try { return UtcOffset.Formats.FOUR_DIGITS.parse(this) } catch (_: Exception) {}
     try { return UtcOffset.parse(this) } catch (_: Exception) {}
@@ -85,6 +90,13 @@ fun VTimezone.offsetAt(localDateTime: LocalDateTime): UtcOffset {
             }
         } else if (dtStart != null) {
             transitions.add(Transition(dtStart, offset))
+        }
+
+        // Handle RDATE - explicit transition dates
+        for (rdate in rule.rdates) {
+            if (rdate.year in listOf(year - 1, year, year + 1)) {
+                transitions.add(Transition(rdate, offset))
+            }
         }
     }
 

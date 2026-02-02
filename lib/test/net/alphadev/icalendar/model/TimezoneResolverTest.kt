@@ -216,6 +216,44 @@ class TimezoneResolverTest {
     }
 
     @Test
+    fun vtimezoneSouthernHemisphereDst() {
+        // Australia/Sydney: DST October→April (reversed from northern hemisphere)
+        // STANDARD: April (AEDT→AEST, +11→+10)
+        // DAYLIGHT: October (AEST→AEDT, +10→+11)
+        val vtimezone = VTimezone(
+            properties = listOf(ICalProperty("TZID", emptyMap(), "Australia/Sydney")),
+            components = listOf(
+                StandardTimezoneRule(listOf(
+                    ICalProperty("DTSTART", emptyMap(), "19700405T030000"),
+                    ICalProperty("TZOFFSETTO", emptyMap(), "+1000"),
+                    ICalProperty("TZOFFSETFROM", emptyMap(), "+1100"),
+                    ICalProperty("RRULE", emptyMap(), "FREQ=YEARLY;BYMONTH=4;BYDAY=1SU")
+                )),
+                DaylightTimezoneRule(listOf(
+                    ICalProperty("DTSTART", emptyMap(), "19701004T020000"),
+                    ICalProperty("TZOFFSETTO", emptyMap(), "+1100"),
+                    ICalProperty("TZOFFSETFROM", emptyMap(), "+1000"),
+                    ICalProperty("RRULE", emptyMap(), "FREQ=YEARLY;BYMONTH=10;BYDAY=1SU")
+                ))
+            )
+        )
+
+        val resolver = CustomTimezoneResolver(vtimezone)
+
+        // January = summer = AEDT (UTC+11)
+        val summer = LocalDateTime(2024, 1, 15, 12, 0, 0)
+        val instantSummer = resolver.resolve(summer)
+        val expectedSummer = LocalDateTime(2024, 1, 15, 1, 0, 0).toInstant(TimeZone.UTC)
+        assertEquals(expectedSummer, instantSummer)
+
+        // July = winter = AEST (UTC+10)
+        val winter = LocalDateTime(2024, 7, 15, 12, 0, 0)
+        val instantWinter = resolver.resolve(winter)
+        val expectedWinter = LocalDateTime(2024, 7, 15, 2, 0, 0).toInstant(TimeZone.UTC)
+        assertEquals(expectedWinter, instantWinter)
+    }
+
+    @Test
     fun vtimezoneWithMissingTzOffsetToFallsBackToStandard() {
         val vtimezone = VTimezone(
             properties = listOf(ICalProperty("TZID", emptyMap(), "Malformed/Zone")),
@@ -239,6 +277,44 @@ class TimezoneResolverTest {
         // Should not crash, should use standard offset
         val instant = resolver.resolve(local)
         assertNotNull(instant)
+    }
+
+    @Test
+    fun vtimezoneWithRdateSupport() {
+        // Test VTIMEZONE using RDATE instead of RRULE for explicit transitions
+        val vtimezone = VTimezone(
+            properties = listOf(ICalProperty("TZID", emptyMap(), "Custom/RDATE")),
+            components = listOf(
+                StandardTimezoneRule(listOf(
+                    ICalProperty("DTSTART", emptyMap(), "19700101T000000"),
+                    ICalProperty("TZOFFSETTO", emptyMap(), "+0100"),
+                    ICalProperty("TZOFFSETFROM", emptyMap(), "+0200"),
+                    ICalProperty("RDATE", emptyMap(), "20231101T020000"),
+                    ICalProperty("RDATE", emptyMap(), "20241101T020000")
+                )),
+                DaylightTimezoneRule(listOf(
+                    ICalProperty("DTSTART", emptyMap(), "19700601T000000"),
+                    ICalProperty("TZOFFSETTO", emptyMap(), "+0200"),
+                    ICalProperty("TZOFFSETFROM", emptyMap(), "+0100"),
+                    ICalProperty("RDATE", emptyMap(), "20240315T020000"),
+                    ICalProperty("RDATE", emptyMap(), "20250315T020000")
+                ))
+            )
+        )
+
+        val resolver = CustomTimezoneResolver(vtimezone)
+
+        // February = after Nov 2023 standard transition = +01:00
+        val beforeSpring = LocalDateTime(2024, 2, 15, 12, 0, 0)
+        val instantBefore = resolver.resolve(beforeSpring)
+        val expectedBefore = LocalDateTime(2024, 2, 15, 11, 0, 0).toInstant(TimeZone.UTC)
+        assertEquals(expectedBefore, instantBefore)
+
+        // June = after March 15 daylight transition = +02:00
+        val afterSpring = LocalDateTime(2024, 6, 15, 12, 0, 0)
+        val instantAfter = resolver.resolve(afterSpring)
+        val expectedAfter = LocalDateTime(2024, 6, 15, 10, 0, 0).toInstant(TimeZone.UTC)
+        assertEquals(expectedAfter, instantAfter)
     }
 
     // ===================
