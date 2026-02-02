@@ -46,15 +46,7 @@ class RRuleParserTest {
 
     @Test
     fun parsesAllDaysOfWeek() {
-        val days = listOf(
-            "MO" to DayOfWeek.MONDAY,
-            "TU" to DayOfWeek.TUESDAY,
-            "WE" to DayOfWeek.WEDNESDAY,
-            "TH" to DayOfWeek.THURSDAY,
-            "FR" to DayOfWeek.FRIDAY,
-            "SA" to DayOfWeek.SATURDAY,
-            "SU" to DayOfWeek.SUNDAY
-        )
+        val days = DayOfWeek.entries.map { it.name.take(2) to it }
 
         for ((code, expected) in days) {
             val rule = parseRRule("FREQ=YEARLY;BYMONTH=1;BYDAY=1$code")

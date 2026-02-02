@@ -2,7 +2,6 @@ package net.alphadev.icalendar.model
 
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 
 /**
@@ -60,16 +59,9 @@ private fun parseByday(byday: String): Pair<Int, DayOfWeek>? {
         else -> occurrenceStr.toIntOrNull() ?: return null
     }
 
-    val dayOfWeek = when (dayStr) {
-        "MO" -> DayOfWeek.MONDAY
-        "TU" -> DayOfWeek.TUESDAY
-        "WE" -> DayOfWeek.WEDNESDAY
-        "TH" -> DayOfWeek.THURSDAY
-        "FR" -> DayOfWeek.FRIDAY
-        "SA" -> DayOfWeek.SATURDAY
-        "SU" -> DayOfWeek.SUNDAY
-        else -> return null
-    }
+    val dayOfWeek = DayOfWeek.entries.firstOrNull {
+        it.name.startsWith(dayStr, ignoreCase = true)
+    } ?: return null
 
     return occurrence to dayOfWeek
 }
