@@ -1,12 +1,16 @@
 package net.alphadev.icalendar.import
 
-internal object LineUnfolder {
+object LineUnfolder {
 
-    fun unfold(input: String): List<String> {
-        if (input.isEmpty()) return emptyList()
+    fun unfold(input: String) = buildList {
+        val lineBuffer = StringBuilder()
 
-        val result = mutableListOf<String>()
-        val currentLine = StringBuilder()
+        fun StringBuilder.flushLine() {
+            if (isNotEmpty()) {
+                add(toString())
+                clear()
+            }
+        }
 
         var i = 0
         while (i < input.length) {
@@ -21,23 +25,16 @@ internal object LineUnfolder {
                     if (nextChar == ' ' || nextChar == '\t') {
                         i++
                     } else {
-                        if (currentLine.isNotEmpty()) {
-                            result.add(currentLine.toString())
-                            currentLine.clear()
-                        }
+                        lineBuffer.flushLine()
                     }
                 }
                 else -> {
-                    currentLine.append(char)
+                    lineBuffer.append(char)
                     i++
                 }
             }
         }
 
-        if (currentLine.isNotEmpty()) {
-            result.add(currentLine.toString())
-        }
-
-        return result
+        lineBuffer.flushLine()
     }
 }
