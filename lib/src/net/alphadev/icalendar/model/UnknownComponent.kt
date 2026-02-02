@@ -15,5 +15,5 @@ val UnknownComponent.isStandardUnimplemented: Boolean
     get() = name in STANDARD_COMPONENT_NAMES && !isExtension
 
 private val STANDARD_COMPONENT_NAMES = setOf(
-    "VTODO", "VJOURNAL", "VFREEBUSY", "VTIMEZONE", "VALARM", "STANDARD", "DAYLIGHT"
+    "VTODO", "VJOURNAL", "VFREEBUSY"
 )

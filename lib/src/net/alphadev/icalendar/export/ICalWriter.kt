@@ -12,31 +12,25 @@ class ICalWriter(private val config: Config = Config()) {
     private val lineEnding = if (config.useCrLf) "\r\n" else "\n"
 
     fun write(calendar: VCalendar): String = buildString {
-        writeComponent(VCalendar.NAME, calendar)
+        writeComponent(calendar)
     }
 
     fun writeAll(calendars: List<VCalendar>): String = buildString {
-        calendars.forEach { writeComponent(VCalendar.NAME, it) }
+        calendars.forEach { writeComponent(it) }
     }
 
-    private fun StringBuilder.writeComponent(name: String, component: ICalComponent) {
-        writeLine("BEGIN:$name")
+    private fun StringBuilder.writeComponent(component: ICalComponent) {
+        writeLine("BEGIN:${component.componentName}")
 
         for (property in component.properties) {
             writeProperty(property)
         }
 
         for (nested in component.components) {
-            val nestedName = when (nested) {
-                is VCalendar -> VCalendar.NAME
-                is VEvent -> VEvent.NAME
-                is VAlarm -> VAlarm.NAME
-                is UnknownComponent -> nested.name
-            }
-            writeComponent(nestedName, nested)
+            writeComponent(nested)
         }
 
-        writeLine("END:$name")
+        writeLine("END:${component.componentName}")
     }
 
     private fun StringBuilder.writeProperty(property: ICalProperty) {

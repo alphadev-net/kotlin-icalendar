@@ -7,9 +7,10 @@ import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.datetime.format.Padding
-import kotlinx.datetime.format.char
+import kotlinx.datetime.toInstant
+import net.alphadev.icalendar.model.iCalDateFormat
+import net.alphadev.icalendar.model.iCalDateTimeFormat
+import net.alphadev.icalendar.model.formatUtc
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -49,7 +50,8 @@ class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
     private val components = mutableListOf<ICalComponent>()
 
     init {
-        property("DTSTAMP", Clock.System.now().formatUtc())
+        val now = Clock.System.now()
+        propertyWithInstant("DTSTAMP", now.formatUtc(), instant = now)
         @OptIn(ExperimentalUuidApi::class)
         property("UID", Uuid.random().toString())
     }
@@ -67,22 +69,46 @@ class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
         property("ORGANIZER", "mailto:$email", params)
     }
 
-    fun dtStart(value: LocalDateTime) = property("DTSTART", iCalDateTimeFormat.format(value))
-    fun dtStart(value: LocalDateTime, tzid: String) {
-        property("DTSTART", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)))
-    }
-    fun dtStart(value: Instant) = property("DTSTART", value.formatUtc())
-    fun dtStartDate(value: LocalDate) {
-        property("DTSTART", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")))
+    fun dtStart(value: LocalDateTime) {
+        val instant = value.toInstant(TimeZone.UTC)
+        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = instant)
     }
 
-    fun dtEnd(value: LocalDateTime) = property("DTEND", iCalDateTimeFormat.format(value))
-    fun dtEnd(value: LocalDateTime, tzid: String) {
-        property("DTEND", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)))
+    fun dtStart(value: LocalDateTime, tzid: String) {
+        val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
+        val instant = value.toInstant(tz)
+        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
     }
-    fun dtEnd(value: Instant) = property("DTEND", value.formatUtc())
+
+    fun dtStart(value: Instant) {
+        propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
+    }
+
+    fun dtStartDate(value: LocalDate) {
+        val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0, 0)
+        val instant = midnight.toInstant(TimeZone.UTC)
+        propertyWithInstant("DTSTART", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")), instant)
+    }
+
+    fun dtEnd(value: LocalDateTime) {
+        val instant = value.toInstant(TimeZone.UTC)
+        propertyWithInstant("DTEND", iCalDateTimeFormat.format(value), instant = instant)
+    }
+
+    fun dtEnd(value: LocalDateTime, tzid: String) {
+        val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
+        val instant = value.toInstant(tz)
+        propertyWithInstant("DTEND", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
+    }
+
+    fun dtEnd(value: Instant) {
+        propertyWithInstant("DTEND", value.formatUtc(), instant = value)
+    }
+
     fun dtEndDate(value: LocalDate) {
-        property("DTEND", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")))
+        val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0, 0)
+        val instant = midnight.toInstant(TimeZone.UTC)
+        propertyWithInstant("DTEND", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
     fun duration(value: Duration) = property("DURATION", value.toIsoString())
@@ -101,6 +127,16 @@ class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
         properties.add(ICalProperty(name.uppercase(), parameters, value))
     }
 
+    private fun propertyWithInstant(
+        name: String,
+        value: String,
+        parameters: Map<String, List<String>> = emptyMap(),
+        instant: Instant? = null
+    ) {
+        properties.removeAll { it.name.equals(name, ignoreCase = true) }
+        properties.add(ICalProperty(name.uppercase(), parameters, value, instant))
+    }
+
     fun build(): VEvent = VEvent(properties.toList(), components.toList())
 }
 
@@ -116,17 +152,22 @@ class VAlarmBuilder {
     fun triggerBefore(duration: Duration) {
         property("TRIGGER", (-duration).toIsoString())
     }
+
     fun triggerAfter(duration: Duration) {
         property("TRIGGER", duration.toIsoString())
     }
+
     fun triggerBeforeEnd(duration: Duration) {
         property("TRIGGER", (-duration).toIsoString(), mapOf("RELATED" to listOf("END")))
     }
+
     fun triggerAfterEnd(duration: Duration) {
         property("TRIGGER", duration.toIsoString(), mapOf("RELATED" to listOf("END")))
     }
+
     fun triggerAt(instant: Instant) {
-        property("TRIGGER", instant.formatUtc(), mapOf("VALUE" to listOf("DATE-TIME")))
+        properties.removeAll { it.name.equals("TRIGGER", ignoreCase = true) }
+        properties.add(ICalProperty("TRIGGER", mapOf("VALUE" to listOf("DATE-TIME")), instant.formatUtc(), instant))
     }
 
     fun description(value: String) = property("DESCRIPTION", value)
@@ -153,22 +194,3 @@ class VAlarmBuilder {
 
 enum class EventStatus { TENTATIVE, CONFIRMED, CANCELLED }
 enum class Transparency { OPAQUE, TRANSPARENT }
-
-private val iCalDateFormat = LocalDate.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-}
-
-private val iCalDateTimeFormat = LocalDateTime.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-    char('T')
-    hour(Padding.ZERO)
-    minute(Padding.ZERO)
-    second(Padding.ZERO)
-}
-
-internal fun Instant.formatUtc(): String =
-    iCalDateTimeFormat.format(toLocalDateTime(TimeZone.UTC)) + "Z"

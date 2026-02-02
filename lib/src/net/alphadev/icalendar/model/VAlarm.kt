@@ -32,11 +32,10 @@ val VAlarm.action: AlarmAction?
 val VAlarm.trigger: AlarmTrigger?
     get() {
         val prop = properties.firstOrNull { it.name == "TRIGGER" } ?: return null
-        val value = prop.value
 
         // Absolute trigger (DATE-TIME value)
         if (prop.valueType.equals("DATE-TIME", ignoreCase = true)) {
-            return prop.toInstant()?.let { AlarmTrigger.Absolute(it) }
+            return prop.instant?.let { AlarmTrigger.Absolute(it) }
         }
 
         // Relative trigger (DURATION value, default)
@@ -45,7 +44,7 @@ val VAlarm.trigger: AlarmTrigger?
             else -> AlarmTrigger.RelatedTo.START
         }
 
-        val duration = parseICalDuration(value) ?: return null
+        val duration = parseICalDuration(prop.value) ?: return null
         return AlarmTrigger.Relative(duration, relatedTo)
     }
 
@@ -69,42 +68,18 @@ val VAlarm.repeatDuration: Duration?
 
 internal fun parseICalDuration(value: String): Duration? {
     val input = value.trim()
-    if (input.isEmpty()) return null
+    if (input.isEmpty() || !input.contains('P')) return null
 
-    var idx = 0
-    val negative = if (input[idx] == '-') { idx++; true } else { if (input[idx] == '+') idx++; false }
-
-    if (idx >= input.length || input[idx] != 'P') return null
-    idx++
-
-    var totalSeconds = 0L
-    var inTime = false
-
-    while (idx < input.length) {
-        if (input[idx] == 'T') {
-            inTime = true
-            idx++
-            continue
-        }
-
-        val numStart = idx
-        while (idx < input.length && input[idx].isDigit()) idx++
-        if (idx == numStart) return null
-
-        val num = input.substring(numStart, idx).toLongOrNull() ?: return null
-        if (idx >= input.length) return null
-
-        val unit = input[idx++]
-        totalSeconds += when {
-            unit == 'W' -> num * 7 * 24 * 3600
-            unit == 'D' -> num * 24 * 3600
-            unit == 'H' && inTime -> num * 3600
-            unit == 'M' && inTime -> num * 60
-            unit == 'S' && inTime -> num
-            else -> return null
-        }
+    // iCalendar uses 'W' for weeks, ISO 8601 doesn't support it
+    // Convert weeks to days: 1W = 7D
+    val normalized = input.replace(Regex("""(\d+)W""")) { match ->
+        val weeks = match.groupValues[1].toLong()
+        "${weeks * 7}D"
     }
 
-    val seconds = if (negative) -totalSeconds else totalSeconds
-    return Duration.parseIsoStringOrNull("PT${seconds}S")
+    return try {
+        Duration.parseIsoStringOrNull(normalized)
+    } catch (e: Exception) {
+        null
+    }
 }

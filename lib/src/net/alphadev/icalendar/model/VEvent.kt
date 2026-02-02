@@ -1,13 +1,6 @@
 package net.alphadev.icalendar.model
 
 import kotlin.time.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.format.Padding
-import kotlinx.datetime.format.char
 
 data class VEvent(
     override val properties: List<ICalProperty>,
@@ -48,19 +41,19 @@ val VEvent.dtEndProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTEND" }
 
 val VEvent.dtStart: Instant?
-    get() = dtStartProperty?.toInstant()
+    get() = dtStartProperty?.instant
 
 val VEvent.dtEnd: Instant?
-    get() = dtEndProperty?.toInstant()
+    get() = dtEndProperty?.instant
 
 val VEvent.dtStamp: Instant?
-    get() = properties.firstOrNull { it.name == "DTSTAMP" }?.toInstant()
+    get() = properties.firstOrNull { it.name == "DTSTAMP" }?.instant
 
 val VEvent.created: Instant?
-    get() = properties.firstOrNull { it.name == "CREATED" }?.toInstant()
+    get() = properties.firstOrNull { it.name == "CREATED" }?.instant
 
 val VEvent.lastModified: Instant?
-    get() = properties.firstOrNull { it.name == "LAST-MODIFIED" }?.toInstant()
+    get() = properties.firstOrNull { it.name == "LAST-MODIFIED" }?.instant
 
 val VEvent.isAllDay: Boolean
     get() = dtStartProperty?.valueType.equals("DATE", ignoreCase = true)
@@ -71,35 +64,3 @@ val VEvent.alarms: List<VAlarm>
 
 val VEvent.hasAlarms: Boolean
     get() = components.any { it is VAlarm }
-
-fun ICalProperty.toInstant(): Instant? {
-    val v = value.trim()
-    if (v.isEmpty()) return null
-
-    val zone = tzid?.let { TimeZone.of(it) } ?: TimeZone.UTC
-
-    return when {
-        valueType.equals("DATE", ignoreCase = true) || !v.contains("T") ->
-            iCalDateFormat.parse(v).atStartOfDayIn(zone)
-        v.endsWith("Z") ->
-            iCalDateTimeFormat.parse(v.dropLast(1)).toInstant(TimeZone.UTC)
-        else ->
-            iCalDateTimeFormat.parse(v).toInstant(zone)
-    }
-}
-
-private val iCalDateFormat = LocalDate.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-}
-
-private val iCalDateTimeFormat = LocalDateTime.Format {
-    year(Padding.ZERO)
-    monthNumber(Padding.ZERO)
-    day(Padding.ZERO)
-    char('T')
-    hour(Padding.ZERO)
-    minute(Padding.ZERO)
-    second(Padding.ZERO)
-}
