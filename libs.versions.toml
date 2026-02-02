@@ -1,5 +1,5 @@
 [versions]
-kotlinx-datetime = "0.7.1"
+kotlinx-datetime = "0.7.1-0.6.x-compat"
 
 [libraries]
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinx-datetime" }
