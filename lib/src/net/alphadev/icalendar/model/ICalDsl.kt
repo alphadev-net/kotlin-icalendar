@@ -117,6 +117,15 @@ class VEventBuilder @OptIn(ExperimentalUuidApi::class) constructor() {
         components.add(VAlarmBuilder().apply(block).build())
     }
 
+    fun attendee(email: String, name: String? = null, params: Map<String, List<String>> = emptyMap()) {
+        val combinedParams = if (name != null) {
+            params + ("CN" to listOf(name))
+        } else {
+            params
+        }
+        properties.add(ICalProperty("ATTENDEE", combinedParams, "mailto:$email"))
+    }
+
     fun xProperty(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
         require(name.startsWith("X-", ignoreCase = true)) { "Extension properties must start with X-" }
         property(name, value, parameters)
