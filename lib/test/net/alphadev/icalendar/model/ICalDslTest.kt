@@ -4,11 +4,10 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import net.alphadev.icalendar.model.*
-import net.alphadev.icalendar.model.dsl.EventStatus
-import net.alphadev.icalendar.model.dsl.Transparency
-import net.alphadev.icalendar.model.dsl.vCalendar
+import net.alphadev.icalendar.model.dsl.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -379,5 +378,93 @@ class ICalDslTest {
         assertEquals("Second", event.summary)
         assertEquals(1, event.properties.count { it.name == "UID" })
         assertEquals(1, event.properties.count { it.name == "SUMMARY" })
+    }
+
+    @Test
+    fun `vCalendar can build a VJournal with correct properties`() {
+        val calendar = vCalendar {
+            journal {
+                summary("My Journal Entry")
+                description("Reflecting on today's achievements")
+                dtStartDate(LocalDate(2026, 2, 2))
+                status(JournalStatus.FINAL)
+                classType(JournalClass.PRIVATE)
+                attendee("alice@example.com", "Alice")
+                xProperty("X-CUSTOM", "CustomValue")
+            }
+        }
+
+        assertEquals(1, calendar.components.size)
+        val journal = calendar.components.first()
+        assertTrue(journal is VJournal)
+
+        val props = journal.properties.associateBy { it.name }
+
+        assertEquals("My Journal Entry", props["SUMMARY"]?.value)
+        assertEquals("Reflecting on today's achievements", props["DESCRIPTION"]?.value)
+        assertEquals("FINAL", props["STATUS"]?.value)
+        assertEquals("PRIVATE", props["CLASS"]?.value)
+
+        val attendee = props["ATTENDEE"]
+        assertEquals("mailto:alice@example.com", attendee?.value)
+        assertEquals(listOf("Alice"), attendee?.parameters?.get("CN"))
+
+        val xProp = props["X-CUSTOM"]
+        assertEquals("CustomValue", xProp?.value)
+
+        // DTSTAMP and UID should exist
+        assertTrue(props.containsKey("DTSTAMP"))
+        assertTrue(props.containsKey("UID"))
+    }
+
+    @Test
+    fun `vCalendar can build a VTodo with correct properties`() {
+        val start = LocalDateTime(2026, 2, 2, 9, 0)
+        val due = LocalDateTime(2026, 2, 5, 17, 0)
+
+        val calendar = vCalendar {
+            todo {
+                summary("Finish Kotlin DSL")
+                description("Implement VTODO support")
+                dtStart(start)
+                dtDue(due)
+                status(TodoStatus.NEEDS_ACTION)
+                priority(1)
+                percentComplete(50)
+                categories("Work", "Kotlin")
+                attendee("bob@example.com", "Bob")
+                xProperty("X-CUSTOM-TODO", "CustomValue")
+            }
+        }
+
+        assertEquals(1, calendar.components.size)
+        val todo = calendar.components.first()
+        assertTrue(todo is VTodo)
+
+        val props = todo.properties.associateBy { it.name }
+
+        assertEquals("Finish Kotlin DSL", props["SUMMARY"]?.value)
+        assertEquals("Implement VTODO support", props["DESCRIPTION"]?.value)
+        assertEquals("NEEDS_ACTION", props["STATUS"]?.value)
+        assertEquals("1", props["PRIORITY"]?.value)
+        assertEquals("50", props["PERCENT-COMPLETE"]?.value)
+        assertEquals("Work,Kotlin", props["CATEGORIES"]?.value)
+
+        val attendee = props["ATTENDEE"]
+        assertEquals("mailto:bob@example.com", attendee?.value)
+        assertEquals(listOf("Bob"), attendee?.parameters?.get("CN"))
+
+        val xProp = props["X-CUSTOM-TODO"]
+        assertEquals("CustomValue", xProp?.value)
+
+        // DTSTAMP and UID should exist
+        assertTrue(props.containsKey("DTSTAMP"))
+        assertTrue(props.containsKey("UID"))
+
+        // DTSTART and DUE should be set
+        val dtStart = props["DTSTART"]
+        val dtDue = props["DUE"]
+        assertEquals(start.toInstant(TimeZone.UTC), dtStart?.instant)
+        assertEquals(due.toInstant(TimeZone.UTC), dtDue?.instant)
     }
 }
