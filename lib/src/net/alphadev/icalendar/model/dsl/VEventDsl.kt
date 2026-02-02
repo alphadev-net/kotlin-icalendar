@@ -32,9 +32,8 @@ class VEventBuilder: IComponentBuilder() {
         property("ORGANIZER", "mailto:$email", params)
     }
 
-    fun dtStart(value: LocalDateTime) {
-        val instant = value.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = instant)
+    fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
     }
 
     fun dtStart(value: LocalDateTime, tzid: String) {
@@ -53,9 +52,8 @@ class VEventBuilder: IComponentBuilder() {
         propertyWithInstant("DTSTART", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
-    fun dtEnd(value: LocalDateTime) {
-        val instant = value.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTEND", iCalDateTimeFormat.format(value), instant = instant)
+    fun dtEnd(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+        propertyWithInstant("DTEND", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
     }
 
     fun dtEnd(value: LocalDateTime, tzid: String) {

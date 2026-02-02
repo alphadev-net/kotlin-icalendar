@@ -24,9 +24,9 @@ class VJournalBuilder: IComponentBuilder() {
     fun uid(value: String) = property("UID", value)
     fun summary(value: String) = property("SUMMARY", value)
     fun description(value: String) = property("DESCRIPTION", value)
-    fun dtStart(value: LocalDateTime) {
-        val instant = value.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = instant)
+
+    fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
     }
 
     fun dtStart(value: LocalDateTime, tzid: String) {

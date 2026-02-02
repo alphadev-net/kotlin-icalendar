@@ -29,9 +29,8 @@ class VTodoBuilder: IComponentBuilder() {
     fun percentComplete(value: Int) = property("PERCENT-COMPLETE", value.toString())
     fun categories(vararg values: String) = property("CATEGORIES", values.joinToString(","))
 
-    fun dtStart(value: LocalDateTime) {
-        val instant = value.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = instant)
+    fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
     }
 
     fun dtStart(value: LocalDateTime, tzid: String) {
@@ -42,9 +41,8 @@ class VTodoBuilder: IComponentBuilder() {
 
     fun dtStart(value: Instant) = propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
 
-    fun dtDue(value: LocalDateTime) {
-        val instant = value.toInstant(TimeZone.UTC)
-        propertyWithInstant("DUE", iCalDateTimeFormat.format(value), instant = instant)
+    fun dtDue(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+        propertyWithInstant("DUE", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
     }
 
     fun dtDue(value: LocalDateTime, tzid: String) {
@@ -55,9 +53,8 @@ class VTodoBuilder: IComponentBuilder() {
 
     fun dtDue(value: Instant) = propertyWithInstant("DUE", value.formatUtc(), instant = value)
 
-    fun dtCompleted(value: LocalDateTime) {
-        val instant = value.toInstant(TimeZone.UTC)
-        propertyWithInstant("COMPLETED", iCalDateTimeFormat.format(value), instant = instant)
+    fun dtCompleted(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+        propertyWithInstant("COMPLETED", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
     }
 
     fun dtCompleted(value: Instant) = propertyWithInstant("COMPLETED", value.formatUtc(), instant = value)
