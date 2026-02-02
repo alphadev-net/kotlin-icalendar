@@ -10,37 +10,36 @@ import kotlin.time.Instant
 sealed interface TimezoneResolver {
     fun resolve(localDateTime: LocalDateTime): Instant
 
-    data class Iana(val timeZone: TimeZone) : TimezoneResolver {
-        override fun resolve(localDateTime: LocalDateTime): Instant =
-            localDateTime.toInstant(timeZone)
-    }
-
-    data class Fixed(val offset: UtcOffset) : TimezoneResolver {
-        override fun resolve(localDateTime: LocalDateTime): Instant =
-            localDateTime.toInstant(offset.asTimeZone())
-    }
-
     companion object {
-        val UTC = Fixed(UtcOffset.ZERO)
+        val UTC = FixedTimezoneResolver(UtcOffset.ZERO)
 
         fun from(tzid: String?, timezones: Map<String, VTimezone> = emptyMap()): TimezoneResolver {
             if (tzid == null) return UTC
 
             val normalized = normalizeTzid(tzid)
 
-            // Try IANA first
-            tryIana(normalized)?.let { return it }
+            // Try UTC offset first (before IANA, since TimeZone.of() also accepts offsets)
+            if (looksLikeOffset(normalized)) {
+                FixedTimezoneResolver.tryCreate(normalized)?.let { return it }
+            }
 
-            // Try Windows name mapping
-            WINDOWS_TO_IANA[normalized]?.let { tryIana(it)?.let { iana -> return iana } }
+            IanaTimezoneResolver.tryCreate(normalized)?.let { return it }
 
-            // Try UTC offset format
-            tryUtcOffset(normalized)?.let { return Fixed(it) }
+            WINDOWS_TO_IANA[normalized]?.let {
+                IanaTimezoneResolver.tryCreate(it)?.let { iana -> return iana }
+            }
 
-            // Check VTIMEZONE for fallback offset
-            timezones[tzid]?.standardOffset?.let { return Fixed(it) }
+            // Try offset parsing for non-obvious formats
+            FixedTimezoneResolver.tryCreate(normalized)?.let { return it }
+
+            timezones[tzid]?.let { return CustomTimezoneResolver(it) }
 
             return UTC
+        }
+
+        private fun looksLikeOffset(value: String): Boolean {
+            return value.startsWith("+") || value.startsWith("-") ||
+                   value.startsWith("UTC") || value.startsWith("GMT")
         }
 
         private fun normalizeTzid(tzid: String): String {
@@ -53,15 +52,6 @@ sealed interface TimezoneResolver {
                 if (candidate.first().isUpperCase()) return candidate
             }
             return stripped
-        }
-
-        private fun tryIana(tzid: String): Iana? =
-            try { Iana(TimeZone.of(tzid)) } catch (_: Exception) { null }
-
-        private fun tryUtcOffset(value: String): UtcOffset? {
-            try { return UtcOffset.Formats.FOUR_DIGITS.parse(value) } catch (_: Exception) {}
-            try { return UtcOffset.parse(value) } catch (_: Exception) {}
-            return null
         }
 
         private val WINDOWS_TO_IANA = mapOf(
@@ -78,5 +68,35 @@ sealed interface TimezoneResolver {
             "India Standard Time" to "Asia/Kolkata",
             "AUS Eastern Standard Time" to "Australia/Sydney"
         )
+    }
+}
+
+data class IanaTimezoneResolver(val timeZone: TimeZone) : TimezoneResolver {
+    override fun resolve(localDateTime: LocalDateTime): Instant =
+        localDateTime.toInstant(timeZone)
+
+    companion object {
+        fun tryCreate(tzid: String): IanaTimezoneResolver? =
+            try { IanaTimezoneResolver(TimeZone.of(tzid)) } catch (_: Exception) { null }
+    }
+}
+
+data class FixedTimezoneResolver(val offset: UtcOffset) : TimezoneResolver {
+    override fun resolve(localDateTime: LocalDateTime): Instant =
+        localDateTime.toInstant(offset.asTimeZone())
+
+    companion object {
+        fun tryCreate(value: String): FixedTimezoneResolver? {
+            try { return FixedTimezoneResolver(UtcOffset.Formats.FOUR_DIGITS.parse(value)) } catch (_: Exception) {}
+            try { return FixedTimezoneResolver(UtcOffset.parse(value)) } catch (_: Exception) {}
+            return null
+        }
+    }
+}
+
+data class CustomTimezoneResolver(val vtimezone: VTimezone) : TimezoneResolver {
+    override fun resolve(localDateTime: LocalDateTime): Instant {
+        val offset = vtimezone.offsetAt(localDateTime)
+        return localDateTime.toInstant(offset.asTimeZone())
     }
 }

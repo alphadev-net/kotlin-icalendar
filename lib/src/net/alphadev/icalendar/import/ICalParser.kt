@@ -74,8 +74,8 @@ private fun parseNestedComponent(name: String, iterator: Iterator<ContentLine>):
         VAlarm.NAME -> VAlarm(properties, components)
         VCalendar.NAME -> VCalendar(properties, components)
         VTimezone.NAME -> VTimezone(properties, components)
-        VTimezoneRule.Standard.NAME -> VTimezoneRule.Standard(properties)
-        VTimezoneRule.Daylight.NAME -> VTimezoneRule.Daylight(properties)
+        StandardTimezoneRule.NAME -> StandardTimezoneRule(properties)
+        DaylightTimezoneRule.NAME -> DaylightTimezoneRule(properties)
         else -> UnknownComponent(name, properties, components)
     }
 }
@@ -110,8 +110,8 @@ private fun ICalComponent.resolveInstants(timezones: Map<String, VTimezone>): IC
             components = components.map { it.resolveInstants(timezones) }
         )
         is VTimezone -> this
-        is VTimezoneRule.Standard -> this
-        is VTimezoneRule.Daylight -> this
+        is StandardTimezoneRule -> this
+        is DaylightTimezoneRule -> this
         is UnknownComponent -> copy(
             properties = properties.map { it.resolveInstant(timezones) },
             components = components.map { it.resolveInstants(timezones) }

@@ -1,5 +1,6 @@
 package net.alphadev.icalendar.model
 
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.UtcOffset
 
 data class VTimezone(
@@ -13,26 +14,26 @@ data class VTimezone(
 sealed class VTimezoneRule : ICalComponent {
     abstract override val properties: List<ICalProperty>
     override val components: List<ICalComponent> get() = emptyList()
+}
 
-    data class Standard(override val properties: List<ICalProperty>) : VTimezoneRule() {
-        override val componentName: String = NAME
-        companion object { const val NAME = "STANDARD" }
-    }
+data class StandardTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
+    override val componentName: String = NAME
+    companion object { const val NAME = "STANDARD" }
+}
 
-    data class Daylight(override val properties: List<ICalProperty>) : VTimezoneRule() {
-        override val componentName: String = NAME
-        companion object { const val NAME = "DAYLIGHT" }
-    }
+data class DaylightTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
+    override val componentName: String = NAME
+    companion object { const val NAME = "DAYLIGHT" }
 }
 
 val VTimezone.tzid: String?
     get() = properties.firstOrNull { it.name == "TZID" }?.value
 
-val VTimezone.standardRules: List<VTimezoneRule.Standard>
-    get() = components.filterIsInstance<VTimezoneRule.Standard>()
+val VTimezone.standardRules: List<StandardTimezoneRule>
+    get() = components.filterIsInstance<StandardTimezoneRule>()
 
-val VTimezone.daylightRules: List<VTimezoneRule.Daylight>
-    get() = components.filterIsInstance<VTimezoneRule.Daylight>()
+val VTimezone.daylightRules: List<DaylightTimezoneRule>
+    get() = components.filterIsInstance<DaylightTimezoneRule>()
 
 val VTimezone.standardOffset: UtcOffset?
     get() = standardRules.firstOrNull()?.tzOffsetTo
@@ -43,8 +44,64 @@ val VTimezoneRule.tzOffsetTo: UtcOffset?
 val VTimezoneRule.tzOffsetFrom: UtcOffset?
     get() = properties.firstOrNull { it.name == "TZOFFSETFROM" }?.value?.parseUtcOffset()
 
+val VTimezoneRule.dtStart: LocalDateTime?
+    get() = properties.firstOrNull { it.name == "DTSTART" }?.value?.let { parseICalDateTime(it) }
+
+val VTimezoneRule.rrule: String?
+    get() = properties.firstOrNull { it.name == "RRULE" }?.value
+
+val VTimezoneRule.dstRule: DstRule?
+    get() = rrule?.let { parseRRule(it) }
+
 private fun String.parseUtcOffset(): UtcOffset? {
     try { return UtcOffset.Formats.FOUR_DIGITS.parse(this) } catch (_: Exception) {}
     try { return UtcOffset.parse(this) } catch (_: Exception) {}
     return null
+}
+
+/**
+ * Determine the UTC offset in effect at the given local datetime.
+ * Evaluates STANDARD and DAYLIGHT rules with their RRULE patterns.
+ */
+fun VTimezone.offsetAt(localDateTime: LocalDateTime): UtcOffset {
+    data class Transition(val dateTime: LocalDateTime, val offset: UtcOffset)
+
+    val year = localDateTime.year
+    val transitions = mutableListOf<Transition>()
+
+    for (rule in standardRules + daylightRules) {
+        val offset = rule.tzOffsetTo ?: continue
+        val dstRule = rule.dstRule
+        val dtStart = rule.dtStart
+
+        if (dstRule != null && dtStart != null) {
+            for (y in listOf(year - 1, year)) {
+                val transitionDate = dstRule.dateInYear(y)
+                val transitionDateTime = LocalDateTime(
+                    transitionDate.year, transitionDate.month, transitionDate.day,
+                    dtStart.hour, dtStart.minute, dtStart.second
+                )
+                transitions.add(Transition(transitionDateTime, offset))
+            }
+        } else if (dtStart != null) {
+            transitions.add(Transition(dtStart, offset))
+        }
+    }
+
+    if (transitions.isEmpty()) {
+        return standardOffset ?: UtcOffset.ZERO
+    }
+
+    transitions.sortBy { it.dateTime }
+
+    var activeOffset = transitions.first().offset
+    for (t in transitions) {
+        if (t.dateTime <= localDateTime) {
+            activeOffset = t.offset
+        } else {
+            break
+        }
+    }
+
+    return activeOffset
 }
