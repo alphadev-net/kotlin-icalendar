@@ -11,6 +11,7 @@ settings:
   kotlin:
     optIns:
       - kotlin.time.ExperimentalTime
+      - kotlin.uuid.ExperimentalUuidApi
 
 apply:
   - ../publish.module-template.yaml
