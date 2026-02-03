@@ -3,6 +3,7 @@ product:
 
 dependencies:
     - ../transform
+    - $libs.ajalt.clikt
     - $libs.kotlinx.io.core
     - $libs.ktor.client
 
