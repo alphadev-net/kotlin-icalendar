@@ -1,0 +1,15 @@
+product:
+    type: jvm/app
+
+dependencies:
+    - ../transform
+    - $libs.ajalt.clikt
+    - $libs.kotlinx.io.core
+    - $libs.ktor.client
+
+settings:
+    publishing:
+        name: icalendar
+
+apply:
+    - ../publish.module-template.yaml

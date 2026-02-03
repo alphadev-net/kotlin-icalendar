@@ -3,7 +3,7 @@ product:
     platforms: [jvm, js]
 
 dependencies:
-    - ../base
+    - ../base: exported
 
 settings:
   publishing:
