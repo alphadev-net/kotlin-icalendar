@@ -1,7 +1,6 @@
 package net.alphadev.icalendar.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.convert
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
 import com.github.ajalt.clikt.parameters.groups.required
@@ -16,8 +15,6 @@ import net.alphadev.icalendar.cli.sources.readICalFromFile
 import net.alphadev.icalendar.cli.sources.readICalFromUrl
 import net.alphadev.icalendar.export.toICalString
 import kotlin.time.measureTime
-
-fun main(args: Array<String>) = iCalendar().main(args)
 
 private sealed class Source {
     data class Url(val url: String): Source()
