@@ -4,6 +4,7 @@ product:
 dependencies:
     - ../transform
     - $libs.kotlinx.io.core
+    - $libs.ktor.client
 
 settings:
     publishing:
