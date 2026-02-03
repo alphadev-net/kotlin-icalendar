@@ -1,4 +1,4 @@
-package net.alphadev.icalendar.cli
+package net.alphadev.icalendar.cli.destination
 
 import kotlinx.io.buffered
 import kotlinx.io.files.Path

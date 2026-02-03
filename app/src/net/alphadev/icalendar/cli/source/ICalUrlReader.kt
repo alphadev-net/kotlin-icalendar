@@ -1,4 +1,4 @@
-package net.alphadev.icalendar.cli
+package net.alphadev.icalendar.cli.sources
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
