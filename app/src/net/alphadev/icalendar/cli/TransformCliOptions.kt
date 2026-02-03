@@ -31,10 +31,10 @@ internal class Transform : CliktCommand() {
     }
 }
 
-private fun List<VCalendar>.removeEventAlarms() = map { calendar ->
+internal fun List<VCalendar>.removeEventAlarms() = map { calendar ->
     calendar.mapType<VEvent> { it.removeAlarms() }
 }
 
-private fun List<VCalendar>.offsetAllEventsBy(offset: Duration) = map { calendar ->
+internal fun List<VCalendar>.offsetAllEventsBy(offset: Duration) = map { calendar ->
     calendar.mapType<VEvent> { it.offsetTimesBy(offset) }
 }
