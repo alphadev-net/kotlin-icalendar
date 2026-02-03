@@ -3,6 +3,7 @@ product:
 
 dependencies:
     - ../transform
+    - $libs.kotlinx.io.core
 
 settings:
     publishing:
