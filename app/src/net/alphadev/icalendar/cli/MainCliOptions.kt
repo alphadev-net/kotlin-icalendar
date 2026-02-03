@@ -1,6 +1,7 @@
 package net.alphadev.icalendar.cli
 
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.obj
 import com.github.ajalt.clikt.parameters.arguments.convert
 import com.github.ajalt.clikt.parameters.groups.mutuallyExclusiveOptions
 import com.github.ajalt.clikt.parameters.groups.required
@@ -14,6 +15,7 @@ import net.alphadev.icalendar.cli.destination.writeICalFile
 import net.alphadev.icalendar.cli.sources.readICalFromFile
 import net.alphadev.icalendar.cli.sources.readICalFromUrl
 import net.alphadev.icalendar.export.toICalString
+import net.alphadev.icalendar.model.VCalendar
 import kotlin.time.measureTime
 
 private sealed class Source {
@@ -38,14 +40,21 @@ internal class iCalendar: CliktCommand(name = "icalendar") {
 
     override fun run() {
         val duration = measureTime {
-            val iCalContents = when (val source = source) {
+            var calendars = when (val source = source) {
                 is Source.File -> readICalFromFile(source.path)
                 is Source.Url -> runBlocking { readICalFromUrl(source.url) }
             }
 
+            currentContext.obj = calendars
+
+            if (currentContext.invokedSubcommand != null) {
+                @Suppress("UNCHECKED_CAST")
+                calendars = currentContext.obj as List<VCalendar>
+            }
+
             when (val output = output) {
-                null -> println(iCalContents.toICalString())
-                else -> iCalContents.writeICalFile(output)
+                null -> println(calendars.toICalString())
+                else -> calendars.writeICalFile(output)
             }
         }
 
