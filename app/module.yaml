@@ -1,0 +1,12 @@
+product:
+    type: jvm/app
+
+dependencies:
+    - ../transform
+
+settings:
+    publishing:
+        name: icalendar
+
+apply:
+    - ../publish.module-template.yaml
