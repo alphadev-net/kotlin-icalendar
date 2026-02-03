@@ -1,0 +1,17 @@
+product:
+    type: lib
+    platforms: [jvm, js]
+
+dependencies:
+    - ../base
+
+settings:
+  publishing:
+    name: kotlin-icalendar-transformations
+  kotlin:
+    optIns:
+      - kotlin.time.ExperimentalTime
+      - kotlin.uuid.ExperimentalUuidApi
+
+apply:
+  - ../publish.module-template.yaml
