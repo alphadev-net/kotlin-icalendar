@@ -24,7 +24,7 @@ class VersionPropertyBehaviorTest {
     fun dslAutomaticallyAddsVersion() {
         val calendar = vCalendar { }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "VERSION:2.0")
     }
@@ -36,7 +36,7 @@ class VersionPropertyBehaviorTest {
             calScale("GREGORIAN")
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
         val lines = result.lines().filter { it.isNotBlank() }
 
         assertEquals("BEGIN:VCALENDAR", lines[0])
@@ -52,7 +52,7 @@ class VersionPropertyBehaviorTest {
             // No way to remove VERSION through DSL
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "VERSION:2.0")
     }
@@ -64,7 +64,7 @@ class VersionPropertyBehaviorTest {
             prodId("Test")
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         // Count VERSION occurrences - should be exactly 1
         val versionCount = result.lines().count { it.trim() == "VERSION:2.0" }
@@ -82,7 +82,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "VERSION:2.0")
         assertEquals("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n", result)
@@ -98,7 +98,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
         val lines = result.lines().filter { it.isNotBlank() }
 
         // VERSION should be prepended, not appended
@@ -119,7 +119,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         // Count VERSION occurrences - should be exactly 1
         val versionCount = result.lines().count { it.trim() == "VERSION:2.0" }
@@ -137,7 +137,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         // Should not prepend another VERSION
         val versionCount = result.lines().count { it.trim() == "VERSION:2.0" }
@@ -155,7 +155,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         // Should detect lowercase "version" and not add another
         val versionCount = result.lines().count { it.contains("VERSION", ignoreCase = true) && it.contains("2.0") }
@@ -176,7 +176,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         // Should not add VERSION:2.0, keep VERSION:1.0
         assertContains(result, "VERSION:1.0")
@@ -194,7 +194,7 @@ class VersionPropertyBehaviorTest {
             components = emptyList()
         )
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
         val lines = result.lines().filter { it.isNotBlank() }
 
         assertEquals("BEGIN:VCALENDAR", lines[0])

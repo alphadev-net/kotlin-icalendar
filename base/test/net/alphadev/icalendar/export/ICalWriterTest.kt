@@ -14,7 +14,7 @@ class ICalWriterTest {
             prodId("-//Test//Test//EN")
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertTrue(result.startsWith("BEGIN:VCALENDAR\r\n"))
         assertTrue(result.endsWith("END:VCALENDAR\r\n"))
@@ -31,7 +31,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "BEGIN:VCALENDAR")
         assertContains(result, "BEGIN:VEVENT")
@@ -50,7 +50,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "DTSTART;TZID=America/New_York;VALUE=DATE-TIME:20240101T120000")
     }
@@ -64,7 +64,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, """ATTENDEE;CN="John Doe, Manager":mailto:john@example.com""")
     }
@@ -78,7 +78,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, """ATTENDEE;CN="Company: Inc":mailto:test@example.com""")
     }
@@ -92,7 +92,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "CATEGORIES;LANGUAGE=en,fr,de:MEETING")
     }
@@ -105,7 +105,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "SUMMARY:Path: C:\\\\Users\\\\Test")
     }
@@ -118,7 +118,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "DESCRIPTION:Line 1\\nLine 2")
     }
@@ -131,7 +131,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "LOCATION:Room 1\\, Building A")
     }
@@ -144,7 +144,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "SUMMARY:Note\\; Important")
     }
@@ -157,7 +157,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "DESCRIPTION:Line 1\\nLine 2")
         assertTrue(!result.contains("\r\n\r\n")) // No double CRLF from escaped \r
@@ -166,9 +166,9 @@ class ICalWriterTest {
     @Test
     fun usesLfWhenConfigured() {
         val calendar = vCalendar { }
-        val config = ICalWriter.Config(useCrLf = false)
+        val config = Config(useCrLf = false)
 
-        val result = ICalWriter(config).write(calendar)
+        val result = calendar.toICalString(config)
 
         assertTrue(result.contains("BEGIN:VCALENDAR\n"))
         assertTrue(result.contains("VERSION:2.0\n"))
@@ -180,7 +180,7 @@ class ICalWriterTest {
     fun usesCrLfByDefault() {
         val calendar = vCalendar { }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertTrue(result.contains("\r\n"))
     }
@@ -194,7 +194,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         // Should contain folding (CRLF + space)
         assertTrue(result.contains("\r\n "), "Long lines should be folded by default")
@@ -208,9 +208,10 @@ class ICalWriterTest {
                 summary(longValue)
             }
         }
-        val config = ICalWriter.Config(foldLines = false)
 
-        val result = ICalWriter(config).write(calendar)
+        val config = Config(foldLines = false)
+
+        val result = calendar.toICalString(config)
 
         // Count CRLF occurrences - should only be at end of lines, not folding
         val crlfCount = result.windowed(2).count { it == "\r\n" }
@@ -230,7 +231,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "BEGIN:VCALENDAR")
         assertContains(result, "BEGIN:VEVENT")
@@ -253,7 +254,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "SUMMARY:Event 1")
         assertContains(result, "SUMMARY:Event 2")
@@ -270,7 +271,7 @@ class ICalWriterTest {
             prodId("Calendar2")
         }
 
-        val result = ICalWriter().writeAll(listOf(calendar1, calendar2))
+        val result = listOf(calendar1, calendar2).toICalString()
 
         assertContains(result, "PRODID:Calendar1")
         assertContains(result, "PRODID:Calendar2")
@@ -279,20 +280,9 @@ class ICalWriterTest {
     }
 
     @Test
-    fun toICalStringExtension() {
-        val calendar = vCalendar { }
-
-        val result = calendar.toICalString()
-
-        assertContains(result, "BEGIN:VCALENDAR")
-        assertContains(result, "VERSION:2.0")
-        assertContains(result, "END:VCALENDAR")
-    }
-
-    @Test
     fun toICalStringWithConfig() {
         val calendar = vCalendar { }
-        val config = ICalWriter.Config(useCrLf = false, foldLines = false)
+        val config = Config(useCrLf = false, foldLines = false)
 
         val result = calendar.toICalString(config)
 
@@ -308,7 +298,7 @@ class ICalWriterTest {
             method("PUBLISH")
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
         val lines = result.lines()
 
         val versionIndex = lines.indexOfFirst { it.contains("VERSION") }
@@ -329,7 +319,7 @@ class ICalWriterTest {
             event { uid("3") }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
         val lines = result.lines()
 
         val uid1Index = lines.indexOfFirst { it.contains("UID:1") }
@@ -345,7 +335,7 @@ class ICalWriterTest {
         // ICalWriter always adds VERSION:2.0 if not present
         val calendar = vCalendar { }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertEquals("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n", result)
     }
@@ -357,7 +347,7 @@ class ICalWriterTest {
             property("VERSION", "2.0")
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertEquals("BEGIN:VCALENDAR\r\nVERSION:2.0\r\nEND:VCALENDAR\r\n", result)
     }
@@ -368,7 +358,7 @@ class ICalWriterTest {
             property("SUMMARY", "")
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "SUMMARY:")
     }
@@ -382,7 +372,7 @@ class ICalWriterTest {
             }
         }
 
-        val result = ICalWriter().write(calendar)
+        val result = calendar.toICalString()
 
         assertContains(result, "DESCRIPTION:Line 1\\nLine 2\\; with semicolon\\, comma\\\\and backslash")
     }
