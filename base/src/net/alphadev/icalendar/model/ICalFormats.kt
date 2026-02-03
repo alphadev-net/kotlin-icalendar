@@ -8,13 +8,13 @@ import kotlinx.datetime.format.Padding
 import kotlinx.datetime.format.char
 import kotlin.time.Instant
 
-internal val iCalDateFormat = LocalDate.Format {
+val iCalDateFormat = LocalDate.Format {
     year(Padding.ZERO)
     monthNumber(Padding.ZERO)
     day(Padding.ZERO)
 }
 
-internal val iCalDateTimeFormat = LocalDateTime.Format {
+val iCalDateTimeFormat = LocalDateTime.Format {
     year(Padding.ZERO)
     monthNumber(Padding.ZERO)
     day(Padding.ZERO)
@@ -41,5 +41,5 @@ internal fun parseICalDateTime(value: String): LocalDateTime? {
     }
 }
 
-internal fun Instant.formatUtc(): String =
+fun Instant.formatUtc(): String =
     iCalDateTimeFormat.format(toLocalDateTime(TimeZone.UTC)) + "Z"

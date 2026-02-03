@@ -3,7 +3,7 @@ product:
   platforms: [jvm, android, iosArm64, iosSimulatorArm64, iosX64, js]
 
 dependencies:
-  - $libs.kotlinx.datetime
+  - $libs.kotlinx.datetime: exported
 
 settings:
   publishing:
