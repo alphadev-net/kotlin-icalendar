@@ -2,7 +2,7 @@
 ajalt-clikt = "5.1.0"
 kotlinx-datetime = "0.7.1"
 kotlinx-io = "0.8.2"
-ktor = "3.3.3"
+ktor = "3.4.0"
 
 [libraries]
 ajalt-clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "ajalt-clikt" }
