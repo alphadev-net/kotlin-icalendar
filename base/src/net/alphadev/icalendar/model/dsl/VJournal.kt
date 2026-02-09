@@ -26,13 +26,13 @@ class VJournalBuilder: IComponentBuilder() {
     fun description(value: String) = property("DESCRIPTION", value)
 
     fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
+        propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     fun dtStart(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
+        propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
     fun dtStart(value: Instant) {
@@ -42,7 +42,7 @@ class VJournalBuilder: IComponentBuilder() {
     fun dtStartDate(value: LocalDate) {
         val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0)
         val instant = midnight.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTSTART", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")), instant)
+        propertyWithInstant("DTSTART", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
     fun status(value: JournalStatus) = property("STATUS", value.name)

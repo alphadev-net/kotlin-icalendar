@@ -18,12 +18,12 @@ fun VEvent.offsetTimesBy(duration: Duration): VEvent {
                         // Timezone-aware times have TZID parameter
                         property.tzid != null -> {
                             val tz = try { TimeZone.of(property.tzid!!) } catch (_: Exception) { TimeZone.UTC }
-                            iCalDateTimeFormat.format(offsetInstant.toLocalDateTime(tz))
+                            offsetInstant.toLocalDateTime(tz).formatICalDateTime()
                         }
 
                         // Date-only values (VALUE=DATE parameter)
                         property.valueType == "DATE" -> {
-                            iCalDateFormat.format(offsetInstant.toLocalDateTime(TimeZone.UTC).date)
+                            offsetInstant.toLocalDateTime(TimeZone.UTC).date.formatICalDate()
                         }
 
                         // Fallback: assume UTC

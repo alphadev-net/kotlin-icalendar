@@ -30,31 +30,31 @@ class VTodoBuilder: IComponentBuilder() {
     fun categories(vararg values: String) = property("CATEGORIES", values.joinToString(","))
 
     fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
+        propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     fun dtStart(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
+        propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
     fun dtStart(value: Instant) = propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
 
     fun dtDue(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("DUE", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
+        propertyWithInstant("DUE", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     fun dtDue(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
-        propertyWithInstant("DUE", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
+        propertyWithInstant("DUE", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
     fun dtDue(value: Instant) = propertyWithInstant("DUE", value.formatUtc(), instant = value)
 
     fun dtCompleted(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("COMPLETED", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
+        propertyWithInstant("COMPLETED", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     fun dtCompleted(value: Instant) = propertyWithInstant("COMPLETED", value.formatUtc(), instant = value)

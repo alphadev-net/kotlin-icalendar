@@ -33,13 +33,13 @@ class VEventBuilder: IComponentBuilder() {
     }
 
     fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
+        propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     fun dtStart(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
-        propertyWithInstant("DTSTART", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
+        propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
     fun dtStart(value: Instant) {
@@ -49,17 +49,17 @@ class VEventBuilder: IComponentBuilder() {
     fun dtStartDate(value: LocalDate) {
         val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0, 0)
         val instant = midnight.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTSTART", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")), instant)
+        propertyWithInstant("DTSTART", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
     fun dtEnd(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("DTEND", iCalDateTimeFormat.format(value), instant = value.toInstant(timeZone))
+        propertyWithInstant("DTEND", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     fun dtEnd(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
-        propertyWithInstant("DTEND", iCalDateTimeFormat.format(value), mapOf("TZID" to listOf(tzid)), instant)
+        propertyWithInstant("DTEND", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
     fun dtEnd(value: Instant) {
@@ -69,7 +69,7 @@ class VEventBuilder: IComponentBuilder() {
     fun dtEndDate(value: LocalDate) {
         val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0, 0)
         val instant = midnight.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTEND", iCalDateFormat.format(value), mapOf("VALUE" to listOf("DATE")), instant)
+        propertyWithInstant("DTEND", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
     fun duration(value: Duration) = property("DURATION", value.toIsoString())
