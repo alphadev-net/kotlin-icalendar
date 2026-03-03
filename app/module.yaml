@@ -5,11 +5,12 @@ dependencies:
     - ../transform
     - $libs.ajalt.clikt
     - $libs.kotlinx.io.core
-    - $libs.ktor.client
+    - $ktor.client.cio
 
 settings:
     publishing:
         name: icalendar
+    ktor: enabled
 
 apply:
     - ../publish.module-template.yaml
