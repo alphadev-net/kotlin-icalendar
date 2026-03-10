@@ -125,7 +125,7 @@ public class VEventBuilder internal constructor(
         builderState.xProperty(name, value, parameters)
     }
 
-    fun build(): VEvent {
+    internal fun build(): VEvent {
         return VEvent(builderState.properties.toList(), builderState.components.toList())
     }
 }
