@@ -5,7 +5,10 @@ public data class VAttendee(
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
     override val componentName: String = NAME
-    companion object { const val NAME = "ATTENDEE" }
+
+    public companion object {
+        internal const val NAME = "ATTENDEE"
+    }
 
     val value: String
         get() = properties.firstOrNull()?.value.orEmpty()

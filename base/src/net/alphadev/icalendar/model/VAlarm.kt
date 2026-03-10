@@ -8,7 +8,10 @@ public data class VAlarm(
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
     override val componentName: String = NAME
-    companion object { const val NAME = "VALARM" }
+
+    public companion object {
+        internal const val NAME = "VALARM"
+    }
 }
 
 public enum class AlarmAction { DISPLAY, AUDIO, EMAIL, PROCEDURE }

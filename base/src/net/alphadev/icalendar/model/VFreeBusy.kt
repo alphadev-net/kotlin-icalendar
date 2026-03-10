@@ -11,7 +11,7 @@ public data class VFreeBusy(
     override val componentName: String = NAME
 
     public companion object {
-        public const val NAME = "VFREEBUSY"
+        internal const val NAME = "VFREEBUSY"
     }
 }
 

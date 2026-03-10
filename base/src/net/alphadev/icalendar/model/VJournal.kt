@@ -8,8 +8,8 @@ public data class VJournal(
 ) : ICalComponent {
     override val componentName: String = NAME
 
-    companion object {
-        const val NAME = "VJOURNAL"
+    public companion object {
+        internal const val NAME = "VJOURNAL"
     }
 }
 

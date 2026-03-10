@@ -8,7 +8,10 @@ public data class VTimezone(
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
     override val componentName: String = NAME
-    companion object { const val NAME = "VTIMEZONE" }
+
+    public companion object {
+        internal const val NAME = "VTIMEZONE"
+    }
 }
 
 public sealed class VTimezoneRule : ICalComponent {
@@ -18,12 +21,18 @@ public sealed class VTimezoneRule : ICalComponent {
 
 public data class StandardTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
     override val componentName: String = NAME
-    companion object { const val NAME = "STANDARD" }
+
+    public companion object {
+        internal const val NAME = "STANDARD"
+    }
 }
 
 public data class DaylightTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
     override val componentName: String = NAME
-    companion object { const val NAME = "DAYLIGHT" }
+
+    public companion object {
+        internal const val NAME = "DAYLIGHT"
+    }
 }
 
 public val VTimezone.tzid: String?

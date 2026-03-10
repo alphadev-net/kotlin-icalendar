@@ -8,8 +8,8 @@ public data class VTodo(
 ) : ICalComponent {
     override val componentName: String = NAME
 
-    companion object {
-        const val NAME = "VTODO"
+    public companion object {
+        internal const val NAME = "VTODO"
     }
 }
 

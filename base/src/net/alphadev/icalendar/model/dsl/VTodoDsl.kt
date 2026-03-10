@@ -107,7 +107,7 @@ public class VTodoBuilder {
         builderState.xProperty(name, value, parameters)
     }
 
-    fun build(): VTodo {
+    internal fun build(): VTodo {
         return VTodo(builderState.properties.toList(), builderState.components.toList())
     }
 }

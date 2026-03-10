@@ -7,7 +7,10 @@ public data class VEvent(
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
     override val componentName: String = NAME
-    companion object { const val NAME = "VEVENT" }
+
+    public companion object {
+        internal const val NAME = "VEVENT"
+    }
 }
 
 public val VEvent.uid: String?

@@ -50,7 +50,7 @@ public class VCalendarBuilder {
         builderState.components.add(VFreeBusyBuilder().apply(block).build())
     }
 
-    fun build(): VCalendar {
+    internal fun build(): VCalendar {
         return VCalendar(builderState.properties.toList(), builderState.components.toList())
     }
 }

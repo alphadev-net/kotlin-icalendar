@@ -76,7 +76,7 @@ public class VJournalBuilder {
         builderState.xProperty(name, value, parameters)
     }
 
-    fun build(): VJournal {
+    internal fun build(): VJournal {
         return VJournal(builderState.properties.toList(), builderState.components.toList())
     }
 }

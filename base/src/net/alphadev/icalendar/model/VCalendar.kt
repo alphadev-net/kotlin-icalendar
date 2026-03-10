@@ -5,7 +5,10 @@ public data class VCalendar(
     override val components: List<ICalComponent>
 ) : ICalComponent {
     override val componentName: String = NAME
-    companion object { const val NAME = "VCALENDAR" }
+
+    public companion object {
+        internal const val NAME = "VCALENDAR"
+    }
 }
 
 public val VCalendar.version: String?
