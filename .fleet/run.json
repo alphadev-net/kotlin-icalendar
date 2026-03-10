@@ -7,6 +7,11 @@
         },
         {
             "type": "amper",
+            "name": "clean",
+            "tasks": ["clean"]
+        },
+        {
+            "type": "amper",
             "name": "test",
             "tasks": ["test"]
         }
