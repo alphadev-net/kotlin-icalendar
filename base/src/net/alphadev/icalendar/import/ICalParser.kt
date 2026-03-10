@@ -3,10 +3,17 @@ package net.alphadev.icalendar.import
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
+import kotlinx.io.Source
+import kotlinx.io.Buffer
 import net.alphadev.icalendar.model.*
 import kotlin.time.Instant
 
 public fun parseICalendar(input: String): List<VCalendar> {
+    val source = Buffer().apply { write(input.encodeToByteArray()) }
+    return parseICalendar(source)
+}
+
+public fun parseICalendar(input: Source): List<VCalendar> {
     val lines = LineUnfolder.unfold(input)
     if (lines.isEmpty()) return emptyList()
 

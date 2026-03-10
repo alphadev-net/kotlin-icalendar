@@ -4,6 +4,7 @@ product:
 
 dependencies:
   - $libs.kotlinx.datetime: exported
+  - $libs.kotlinx.io.core: exported
 
 settings:
   publishing:

@@ -1,8 +1,13 @@
 package net.alphadev.icalendar.import
 
-object LineUnfolder {
+import kotlinx.io.Source
+import kotlinx.io.buffered
+import kotlinx.io.readLine
 
-    fun unfold(input: String) = buildList {
+/*internal*/ @Suppress("NO_EXPLICIT_VISIBILITY_IN_API_MODE_WARNING")
+object LineUnfolder {
+    fun unfold(source: Source) = buildList {
+        val buffered = source.buffered()
         val lineBuffer = StringBuilder()
 
         fun StringBuilder.flushLine() {
@@ -12,29 +17,17 @@ object LineUnfolder {
             }
         }
 
-        var i = 0
-        while (i < input.length) {
-            val char = input[i]
-
+        while (!buffered.exhausted()) {
+            val line = buffered.readLine() ?: break
             when {
-                char == '\r' || char == '\n' -> {
-                    val lineEndLength = if (char == '\r' && input.getOrNull(i + 1) == '\n') 2 else 1
-                    i += lineEndLength
-
-                    val nextChar = input.getOrNull(i)
-                    if (nextChar == ' ' || nextChar == '\t') {
-                        i++
-                    } else {
-                        lineBuffer.flushLine()
-                    }
-                }
+                (line.startsWith(' ') || line.startsWith('\t')) && lineBuffer.isNotEmpty() ->
+                    lineBuffer.append(line.drop(1))
                 else -> {
-                    lineBuffer.append(char)
-                    i++
+                    lineBuffer.flushLine()
+                    lineBuffer.append(line)
                 }
             }
         }
-
         lineBuffer.flushLine()
     }
 }
