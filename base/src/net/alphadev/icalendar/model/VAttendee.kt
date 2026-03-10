@@ -1,6 +1,6 @@
 package net.alphadev.icalendar.model
 
-data class VAttendee(
+public data class VAttendee(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
@@ -9,19 +9,19 @@ data class VAttendee(
 
     val value: String
         get() = properties.firstOrNull()?.value.orEmpty()
-
-    val email: String
-        get() = value.removePrefix("mailto:")
-
-    val name: String?
-        get() = properties.firstOrNull()?.parameter("CN")
-
-    val rsvp: Boolean
-        get() = properties.firstOrNull()?.parameter("RSVP")?.equals("TRUE", ignoreCase = true) ?: false
-
-    val role: String?
-        get() = properties.firstOrNull()?.parameter("ROLE")
-
-    val cutype: String?
-        get() = properties.firstOrNull()?.parameter("CUTYPE")
 }
+
+public val VAttendee.email: String
+    get() = value.removePrefix("mailto:")
+
+public val VAttendee.name: String?
+    get() = properties.firstOrNull()?.parameter("CN")
+
+public val VAttendee.rsvp: Boolean
+    get() = properties.firstOrNull()?.parameter("RSVP")?.equals("TRUE", ignoreCase = true) ?: false
+
+public val VAttendee.role: String?
+    get() = properties.firstOrNull()?.parameter("ROLE")
+
+public val VAttendee.cutype: String?
+    get() = properties.firstOrNull()?.parameter("CUTYPE")

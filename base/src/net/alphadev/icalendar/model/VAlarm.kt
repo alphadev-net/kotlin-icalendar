@@ -3,7 +3,7 @@ package net.alphadev.icalendar.model
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-data class VAlarm(
+public data class VAlarm(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
@@ -11,25 +11,25 @@ data class VAlarm(
     companion object { const val NAME = "VALARM" }
 }
 
-enum class AlarmAction { DISPLAY, AUDIO, EMAIL, PROCEDURE }
+public enum class AlarmAction { DISPLAY, AUDIO, EMAIL, PROCEDURE }
 
-sealed interface AlarmTrigger {
-    enum class RelatedTo { START, END }
+public sealed interface AlarmTrigger {
+    public enum class RelatedTo { START, END }
 
-    data class Relative(
+    public data class Relative(
         val duration: Duration,
         val relatedTo: RelatedTo = RelatedTo.START
     ) : AlarmTrigger
 
-    data class Absolute(val instant: Instant) : AlarmTrigger
+    public data class Absolute(val instant: Instant) : AlarmTrigger
 }
 
-val VAlarm.action: AlarmAction?
+public val VAlarm.action: AlarmAction?
     get() = properties.firstOrNull { it.name == "ACTION" }?.value?.let { value ->
         AlarmAction.entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
     }
 
-val VAlarm.trigger: AlarmTrigger?
+public val VAlarm.trigger: AlarmTrigger?
     get() {
         val prop = properties.firstOrNull { it.name == "TRIGGER" } ?: return null
 
@@ -48,22 +48,22 @@ val VAlarm.trigger: AlarmTrigger?
         return AlarmTrigger.Relative(duration, relatedTo)
     }
 
-val VAlarm.description: String?
+public val VAlarm.description: String?
     get() = properties.firstOrNull { it.name == "DESCRIPTION" }?.value
 
-val VAlarm.summary: String?
+public val VAlarm.summary: String?
     get() = properties.firstOrNull { it.name == "SUMMARY" }?.value
 
-val VAlarm.attendees: List<String>
+public val VAlarm.attendees: List<String>
     get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }
 
-val VAlarm.attach: String?
+public val VAlarm.attach: String?
     get() = properties.firstOrNull { it.name == "ATTACH" }?.value
 
-val VAlarm.repeat: Int?
+public val VAlarm.repeat: Int?
     get() = properties.firstOrNull { it.name == "REPEAT" }?.value?.toIntOrNull()
 
-val VAlarm.repeatDuration: Duration?
+public val VAlarm.repeatDuration: Duration?
     get() = properties.firstOrNull { it.name == "DURATION" }?.value?.let { parseICalDuration(it) }
 
 internal fun parseICalDuration(value: String): Duration? {

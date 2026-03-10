@@ -11,7 +11,7 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @ICalDsl
-class VEventBuilder: IComponentBuilder() {
+public class VEventBuilder: IComponentBuilder() {
 
     init {
         val now = Clock.System.now()
@@ -19,66 +19,88 @@ class VEventBuilder: IComponentBuilder() {
         property("UID", Uuid.random().toString())
     }
 
-    fun uid(value: String) = property("UID", value)
-    fun summary(value: String) = property("SUMMARY", value)
-    fun description(value: String) = property("DESCRIPTION", value)
-    fun location(value: String) = property("LOCATION", value)
-    fun status(value: EventStatus) = property("STATUS", value.name)
-    fun transp(value: Transparency) = property("TRANSP", value.name)
-    fun sequence(value: Int) = property("SEQUENCE", value.toString())
+    public fun uid(value: String) {
+        property("UID", value)
+    }
 
-    fun organizer(email: String, name: String? = null) {
+    public fun summary(value: String) {
+        property("SUMMARY", value)
+    }
+
+    public fun description(value: String) {
+        property("DESCRIPTION", value)
+    }
+
+    public fun location(value: String) {
+        property("LOCATION", value)
+    }
+
+    public fun status(value: EventStatus) {
+        property("STATUS", value.name)
+    }
+
+    public fun transp(value: Transparency) {
+        property("TRANSP", value.name)
+    }
+
+    public fun sequence(value: Int) {
+        property("SEQUENCE", value.toString())
+    }
+
+    public fun organizer(email: String, name: String? = null) {
         val params = if (name != null) mapOf("CN" to listOf(name)) else emptyMap()
         property("ORGANIZER", "mailto:$email", params)
     }
 
-    fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+    public fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
         propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
-    fun dtStart(value: LocalDateTime, tzid: String) {
+    public fun dtStart(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
         propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
-    fun dtStart(value: Instant) {
+    public fun dtStart(value: Instant) {
         propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
     }
 
-    fun dtStartDate(value: LocalDate) {
+    public fun dtStartDate(value: LocalDate) {
         val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0, 0)
         val instant = midnight.toInstant(TimeZone.UTC)
         propertyWithInstant("DTSTART", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
-    fun dtEnd(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+    public fun dtEnd(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
         propertyWithInstant("DTEND", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
-    fun dtEnd(value: LocalDateTime, tzid: String) {
+    public fun dtEnd(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
         propertyWithInstant("DTEND", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
-    fun dtEnd(value: Instant) {
+    public fun dtEnd(value: Instant) {
         propertyWithInstant("DTEND", value.formatUtc(), instant = value)
     }
 
-    fun dtEndDate(value: LocalDate) {
+    public fun dtEndDate(value: LocalDate) {
         val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0, 0)
         val instant = midnight.toInstant(TimeZone.UTC)
         propertyWithInstant("DTEND", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
-    fun duration(value: Duration) = property("DURATION", value.toIsoString())
+    public fun duration(value: Duration) {
+        property("DURATION", value.toIsoString())
+    }
 
-    fun alarm(block: VAlarmBuilder.() -> Unit) {
+    public fun alarm(block: VAlarmBuilder.() -> Unit) {
         components.add(VAlarmBuilder().apply(block).build())
     }
 
-    fun attendee(email: String, name: String? = null, params: Map<String, List<String>> = emptyMap()) {
+    public fun attendee(email: String, name: String? = null, params: Map<String, List<String>> = emptyMap()) {
         val combinedParams = if (name != null) {
             params + ("CN" to listOf(name))
         } else {
@@ -87,5 +109,7 @@ class VEventBuilder: IComponentBuilder() {
         properties.add(ICalProperty("ATTENDEE", combinedParams, "mailto:$email"))
     }
 
-    fun build(): VEvent = VEvent(properties.toList(), components.toList())
+    public fun build(): VEvent {
+        return VEvent(properties.toList(), components.toList())
+    }
 }

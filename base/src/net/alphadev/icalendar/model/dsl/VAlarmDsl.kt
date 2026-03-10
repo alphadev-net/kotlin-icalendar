@@ -8,47 +8,67 @@ import kotlin.time.Duration
 import kotlin.time.Instant
 
 @ICalDsl
-class VAlarmBuilder: IComponentBuilder() {
+public class VAlarmBuilder: IComponentBuilder() {
 
-    fun displayAction() = property("ACTION", "DISPLAY")
-    fun audioAction() = property("ACTION", "AUDIO")
-    fun emailAction() = property("ACTION", "EMAIL")
-    fun action(value: AlarmAction) = property("ACTION", value.name)
+    public fun displayAction() {
+        property("ACTION", "DISPLAY")
+    }
 
-    fun triggerBefore(duration: Duration) {
+    public fun audioAction() {
+        property("ACTION", "AUDIO")
+    }
+
+    public fun emailAction() {
+        property("ACTION", "EMAIL")
+    }
+
+    public fun action(value: AlarmAction) {
+        property("ACTION", value.name)
+    }
+
+    public fun triggerBefore(duration: Duration) {
         property("TRIGGER", (-duration).toIsoString())
     }
 
-    fun triggerAfter(duration: Duration) {
+    public fun triggerAfter(duration: Duration) {
         property("TRIGGER", duration.toIsoString())
     }
 
-    fun triggerBeforeEnd(duration: Duration) {
+    public fun triggerBeforeEnd(duration: Duration) {
         property("TRIGGER", (-duration).toIsoString(), mapOf("RELATED" to listOf("END")))
     }
 
-    fun triggerAfterEnd(duration: Duration) {
+    public fun triggerAfterEnd(duration: Duration) {
         property("TRIGGER", duration.toIsoString(), mapOf("RELATED" to listOf("END")))
     }
 
-    fun triggerAt(instant: Instant) {
+    public fun triggerAt(instant: Instant) {
         properties.removeAll { it.name.equals("TRIGGER", ignoreCase = true) }
         properties.add(ICalProperty("TRIGGER", mapOf("VALUE" to listOf("DATE-TIME")), instant.formatUtc(), instant))
     }
 
-    fun description(value: String) = property("DESCRIPTION", value)
-    fun summary(value: String) = property("SUMMARY", value)
+    public fun description(value: String) {
+        property("DESCRIPTION", value)
+    }
 
-    fun attendee(email: String) {
+    public fun summary(value: String) {
+        property("SUMMARY", value)
+    }
+
+    public fun attendee(email: String) {
         properties.add(ICalProperty("ATTENDEE", emptyMap(), "mailto:$email"))
     }
 
-    fun attach(uri: String) = property("ATTACH", uri)
+    public fun attach(uri: String) {
+        property("ATTACH", uri)
+    }
 
-    fun repeat(count: Int, interval: Duration) {
+    public fun repeat(count: Int, interval: Duration) {
         property("REPEAT", count.toString())
         property("DURATION", interval.toIsoString())
     }
 
-    fun build(): VAlarm = VAlarm(properties.toList())
+    public fun build(): VAlarm {
+        return VAlarm(properties.toList())
+    }
 }

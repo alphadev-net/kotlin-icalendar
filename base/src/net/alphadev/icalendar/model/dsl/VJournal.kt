@@ -9,11 +9,11 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-enum class JournalStatus { DRAFT, FINAL, CANCELLED }
-enum class JournalClass { PUBLIC, PRIVATE, CONFIDENTIAL }
+public enum class JournalStatus { DRAFT, FINAL, CANCELLED }
+public enum class JournalClass { PUBLIC, PRIVATE, CONFIDENTIAL }
 
 @ICalDsl
-class VJournalBuilder: IComponentBuilder() {
+public class VJournalBuilder: IComponentBuilder() {
 
     init {
         val now = Clock.System.now()
@@ -21,21 +21,29 @@ class VJournalBuilder: IComponentBuilder() {
         property("UID", Uuid.random().toString())
     }
 
-    fun uid(value: String) = property("UID", value)
-    fun summary(value: String) = property("SUMMARY", value)
-    fun description(value: String) = property("DESCRIPTION", value)
+    public fun uid(value: String) {
+        property("UID", value)
+    }
 
-    fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
+    public fun summary(value: String) {
+        property("SUMMARY", value)
+    }
+
+    public fun description(value: String) {
+        property("DESCRIPTION", value)
+    }
+
+    public fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
         propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
-    fun dtStart(value: LocalDateTime, tzid: String) {
+    public fun dtStart(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
         propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
-    fun dtStart(value: Instant) {
+    public fun dtStart(value: Instant) {
         propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
     }
 
@@ -45,16 +53,24 @@ class VJournalBuilder: IComponentBuilder() {
         propertyWithInstant("DTSTART", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
-    fun status(value: JournalStatus) = property("STATUS", value.name)
+    public fun status(value: JournalStatus) {
+        property("STATUS", value.name)
+    }
 
-    fun classType(value: JournalClass) = property("CLASS", value.name)
+    public fun classType(value: JournalClass) {
+        property("CLASS", value.name)
+    }
 
-    fun attendee(email: String, name: String? = null, params: Map<String, List<String>> = emptyMap()) {
+    public fun attendee(email: String, name: String? = null, params: Map<String, List<String>> = emptyMap()) {
         val combinedParams = if (name != null) params + ("CN" to listOf(name)) else params
         property("ATTENDEE", "mailto:$email", combinedParams)
     }
 
-    fun attach(uri: String) = property("ATTACH", uri)
+    public fun attach(uri: String) {
+        property("ATTACH", uri)
+    }
 
-    fun build(): VJournal = VJournal(properties.toList(), components.toList())
+    public fun build(): VJournal {
+        return VJournal(properties.toList(), components.toList())
+    }
 }

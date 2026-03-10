@@ -45,5 +45,5 @@ public class VFreeBusyBuilder : IComponentBuilder() {
         properties.add(ICalProperty("FREEBUSY", mapOf("FBTYPE" to listOf(fbType)), period))
     }
 
-    internal fun build(): VFreeBusy = VFreeBusy(properties.toList(), components.toList())
+    public fun build(): VFreeBusy = VFreeBusy(properties.toList(), components.toList())
 }

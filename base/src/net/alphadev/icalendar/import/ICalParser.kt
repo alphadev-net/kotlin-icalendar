@@ -6,7 +6,7 @@ import kotlinx.datetime.toInstant
 import net.alphadev.icalendar.model.*
 import kotlin.time.Instant
 
-fun parseICalendar(input: String): List<VCalendar> {
+public fun parseICalendar(input: String): List<VCalendar> {
     val lines = LineUnfolder.unfold(input)
     if (lines.isEmpty()) return emptyList()
 

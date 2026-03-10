@@ -3,7 +3,7 @@ package net.alphadev.icalendar.model
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.UtcOffset
 
-data class VTimezone(
+public data class VTimezone(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent> = emptyList()
 ) : ICalComponent {
@@ -11,49 +11,49 @@ data class VTimezone(
     companion object { const val NAME = "VTIMEZONE" }
 }
 
-sealed class VTimezoneRule : ICalComponent {
+public sealed class VTimezoneRule : ICalComponent {
     abstract override val properties: List<ICalProperty>
     override val components: List<ICalComponent> get() = emptyList()
 }
 
-data class StandardTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
+public data class StandardTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
     override val componentName: String = NAME
     companion object { const val NAME = "STANDARD" }
 }
 
-data class DaylightTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
+public data class DaylightTimezoneRule(override val properties: List<ICalProperty>) : VTimezoneRule() {
     override val componentName: String = NAME
     companion object { const val NAME = "DAYLIGHT" }
 }
 
-val VTimezone.tzid: String?
+public val VTimezone.tzid: String?
     get() = properties.firstOrNull { it.name == "TZID" }?.value
 
-val VTimezone.standardRules: List<StandardTimezoneRule>
+public val VTimezone.standardRules: List<StandardTimezoneRule>
     get() = components.filterIsInstance<StandardTimezoneRule>()
 
-val VTimezone.daylightRules: List<DaylightTimezoneRule>
+public val VTimezone.daylightRules: List<DaylightTimezoneRule>
     get() = components.filterIsInstance<DaylightTimezoneRule>()
 
-val VTimezone.standardOffset: UtcOffset?
+public val VTimezone.standardOffset: UtcOffset?
     get() = standardRules.firstOrNull()?.tzOffsetTo
 
-val VTimezoneRule.tzOffsetTo: UtcOffset?
+public val VTimezoneRule.tzOffsetTo: UtcOffset?
     get() = properties.firstOrNull { it.name == "TZOFFSETTO" }?.value?.parseUtcOffset()
 
-val VTimezoneRule.tzOffsetFrom: UtcOffset?
+public val VTimezoneRule.tzOffsetFrom: UtcOffset?
     get() = properties.firstOrNull { it.name == "TZOFFSETFROM" }?.value?.parseUtcOffset()
 
-val VTimezoneRule.dtStart: LocalDateTime?
+public val VTimezoneRule.dtStart: LocalDateTime?
     get() = properties.firstOrNull { it.name == "DTSTART" }?.value?.let { parseICalDateTime(it) }
 
-val VTimezoneRule.rrule: String?
+public val VTimezoneRule.rrule: String?
     get() = properties.firstOrNull { it.name == "RRULE" }?.value
 
-val VTimezoneRule.dstRule: DstRule?
+public val VTimezoneRule.dstRule: DstRule?
     get() = rrule?.let { parseRRule(it) }
 
-val VTimezoneRule.rdates: List<LocalDateTime>
+public val VTimezoneRule.rdates: List<LocalDateTime>
     get() = properties
         .filter { it.name == "RDATE" }
         .mapNotNull { parseICalDateTime(it.value) }

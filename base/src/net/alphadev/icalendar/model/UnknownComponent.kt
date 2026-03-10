@@ -1,6 +1,6 @@
 package net.alphadev.icalendar.model
 
-data class UnknownComponent(
+public data class UnknownComponent(
     val name: String,
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent>
@@ -8,10 +8,10 @@ data class UnknownComponent(
     override val componentName: String = name
 }
 
-val UnknownComponent.isExtension: Boolean
+public val UnknownComponent.isExtension: Boolean
     get() = name.startsWith("X-", ignoreCase = true)
 
-val UnknownComponent.isStandardUnimplemented: Boolean
+public val UnknownComponent.isStandardUnimplemented: Boolean
     get() = name in STANDARD_COMPONENT_NAMES && !isExtension
 
 private val STANDARD_COMPONENT_NAMES = setOf(

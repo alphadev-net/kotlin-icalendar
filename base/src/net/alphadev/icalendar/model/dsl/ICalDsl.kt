@@ -5,14 +5,14 @@ import net.alphadev.icalendar.model.ICalProperty
 import net.alphadev.icalendar.model.VCalendar
 import kotlin.time.Instant
 
-fun vCalendar(block: VCalendarBuilder.() -> Unit): VCalendar {
+public fun vCalendar(block: VCalendarBuilder.() -> Unit): VCalendar {
     return VCalendarBuilder().apply(block).build()
 }
 
 @DslMarker
 annotation class ICalDsl
 
-abstract class IComponentBuilder {
+internal abstract class IComponentBuilder {
     protected val properties = mutableListOf<ICalProperty>()
     protected val components = mutableListOf<ICalComponent>()
 

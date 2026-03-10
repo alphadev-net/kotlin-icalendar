@@ -4,16 +4,16 @@ import net.alphadev.icalendar.model.ICalComponent
 import net.alphadev.icalendar.model.ICalProperty
 import net.alphadev.icalendar.model.VCalendar
 
-data class Config(
+public data class Config(
     val useCrLf: Boolean = true,
     val foldLines: Boolean = true
 )
 
-fun VCalendar.toICalString(config: Config = Config()): String = buildString {
+public fun VCalendar.toICalString(config: Config = Config()): String = buildString {
     writeComponent(ensureVersion(this@toICalString), config)
 }
 
-fun List<VCalendar>.toICalString(config: Config = Config()): String {
+public fun List<VCalendar>.toICalString(config: Config = Config()): String {
     return joinToString(separator = "\n") { it.toICalString(config) }
 }
 

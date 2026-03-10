@@ -2,7 +2,7 @@ package net.alphadev.icalendar.model
 
 import kotlin.time.Instant
 
-data class VJournal(
+public data class VJournal(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent>
 ) : ICalComponent {
@@ -14,32 +14,32 @@ data class VJournal(
 }
 
 // Common properties
-val VJournal.uid: String?
+public val VJournal.uid: String?
     get() = properties.firstOrNull { it.name == "UID" }?.value
 
-val VJournal.summary: String?
+public val VJournal.summary: String?
     get() = properties.firstOrNull { it.name == "SUMMARY" }?.value
 
-val VJournal.description: String?
+public val VJournal.description: String?
     get() = properties.firstOrNull { it.name == "DESCRIPTION" }?.value
 
-val VJournal.dtStartProperty: ICalProperty?
+public val VJournal.dtStartProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTSTART" }
 
-val VJournal.dtStart: Instant?
+public val VJournal.dtStart: Instant?
     get() = dtStartProperty?.instant
 
-val VJournal.status: String?
+public val VJournal.status: String?
     get() = properties.firstOrNull { it.name == "STATUS" }?.value
 
-val VJournal.organizer: String?
+public val VJournal.organizer: String?
     get() = properties.firstOrNull { it.name == "ORGANIZER" }?.value
 
-val VJournal.categories: List<String>
+public val VJournal.categories: List<String>
     get() = properties.firstOrNull { it.name == "CATEGORIES" }?.value?.split(",")?.map { it.trim() } ?: emptyList()
 
-val VJournal.attachments: List<String>
+public val VJournal.attachments: List<String>
     get() = properties.filter { it.name == "ATTACH" }.map { it.value }
 
-val VJournal.attendees: List<String>
+public val VJournal.attendees: List<String>
     get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }
