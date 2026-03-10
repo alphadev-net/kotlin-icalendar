@@ -1,0 +1,54 @@
+package net.alphadev.icalendar.transform
+
+import net.alphadev.icalendar.model.dsl.VEventBuilder
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.time.Instant
+
+class AnonymizeTest {
+
+    private fun basicEvent() = VEventBuilder().apply {
+        uid("test-uid")
+        dtStart(Instant.parse("2024-01-01T10:00:00Z"))
+        dtEnd(Instant.parse("2024-01-01T11:00:00Z"))
+    }
+
+    @Test
+    fun stripsSummary() {
+        val event = basicEvent().apply { summary("Team Meeting") }.build()
+        val result = event.anonymize()
+        assertFalse(result.properties.any { it.name == "SUMMARY" })
+    }
+
+    @Test
+    fun stripsDescription() {
+        val event = basicEvent().apply { description("Secret details") }.build()
+        val result = event.anonymize()
+        assertFalse(result.properties.any { it.name == "DESCRIPTION" })
+    }
+
+    @Test
+    fun stripsLocation() {
+        val event = basicEvent().apply { location("123 Main St") }.build()
+        val result = event.anonymize()
+        assertFalse(result.properties.any { it.name == "LOCATION" })
+    }
+
+    @Test
+    fun retainsSafeProperties() {
+        val event = basicEvent().apply { summary("Should be removed") }.build()
+        val result = event.anonymize()
+        assertFalse(result.properties.any { it.name == "SUMMARY" })
+        assertTrue(result.properties.any { it.name == "DTSTART" })
+        assertTrue(result.properties.any { it.name == "DTEND" })
+    }
+
+    @Test
+    fun preservesComponents() {
+        val event = basicEvent().apply { alarm { } }.build()
+        val result = event.anonymize()
+        assertEquals(event.components, result.components)
+    }
+}
