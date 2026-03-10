@@ -95,4 +95,35 @@ class AnonymizeTest {
         val result = event.anonymize(filter = emptySet())
         assertEquals(event.properties, result.properties)
     }
+
+    @Test
+    fun builderFilterSelectivelyStrips() {
+        val event = basicEvent().apply {
+            summary("Remove me")
+            location("Keep me")
+        }.build()
+        val result = event.anonymize { summary() }
+        assertFalse(result.properties.any { it.name == "SUMMARY" })
+        assertTrue(result.properties.any { it.name == "LOCATION" })
+    }
+
+    @Test
+    fun builderFilterEmpty() {
+        val event = basicEvent().apply { summary("Keep me") }.build()
+        val result = event.anonymize { }
+        assertTrue(result.properties.any { it.name == "SUMMARY" })
+    }
+
+    @Test
+    fun builderPrivacyRedactedMatchesDefault() {
+        val event = basicEvent().apply {
+            summary("Remove me")
+            description("Remove me")
+            location("Remove me")
+            organizer("boss@example.com")
+            attendee("alice@example.com")
+        }.build()
+        val result = event.anonymize { privacyRedacted() }
+        assertEquals(event.anonymize(), result)
+    }
 }
