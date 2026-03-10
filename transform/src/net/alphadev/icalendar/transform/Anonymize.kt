@@ -3,14 +3,7 @@ package net.alphadev.icalendar.transform
 import net.alphadev.icalendar.model.ICalProperty
 import net.alphadev.icalendar.model.VEvent
 
-fun VEvent.anonymize(): VEvent {
-    return copy(
-        properties = anonymizeProperties(properties),
-        components = components,
-    )
-}
-
-private val ANONYMIZED_PROPERTIES = setOf(
+private val PrivacyRedacted = setOf(
     "SUMMARY",
     "DESCRIPTION",
     "LOCATION",
@@ -18,5 +11,12 @@ private val ANONYMIZED_PROPERTIES = setOf(
     "ATTENDEE"
 )
 
-private fun anonymizeProperties(properties: List<ICalProperty>) = properties
-    .filterNot { it.name in ANONYMIZED_PROPERTIES }
+fun VEvent.anonymize(filter: Set<String> = PrivacyRedacted): VEvent {
+    return copy(
+        properties = anonymizeProperties(properties, filter),
+        components = components,
+    )
+}
+
+private fun anonymizeProperties(properties: List<ICalProperty>, filterList: Set<String>) = properties
+    .filterNot { it.name in filterList }

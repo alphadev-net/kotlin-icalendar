@@ -77,4 +77,22 @@ class AnonymizeTest {
         val result = event.anonymize()
         assertEquals(event.components, result.components)
     }
+
+    @Test
+    fun customFilterOverridesDefault() {
+        val event = basicEvent().apply {
+            summary("Keep me")
+            location("Remove me")
+        }.build()
+        val result = event.anonymize(filter = setOf("LOCATION"))
+        assertFalse(result.properties.any { it.name == "LOCATION" })
+        assertTrue(result.properties.any { it.name == "SUMMARY" })
+    }
+
+    @Test
+    fun emptyFilterRetainsAllProperties() {
+        val event = basicEvent().apply { summary("Keep me") }.build()
+        val result = event.anonymize(filter = emptySet())
+        assertEquals(event.properties, result.properties)
+    }
 }
