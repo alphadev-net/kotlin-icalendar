@@ -2,6 +2,8 @@
 package net.alphadev.icalendar.export
 
 import kotlinx.datetime.LocalDateTime
+import kotlinx.io.Buffer
+import kotlinx.io.readString
 import net.alphadev.icalendar.model.dsl.vCalendar
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -376,5 +378,54 @@ class ICalWriterTest {
         val result = calendar.toICalString()
 
         assertContains(result, "DESCRIPTION:Line 1\\nLine 2\\; with semicolon\\, comma\\\\and backslash")
+    }
+
+    @Test
+    fun writeToSinkMatchesToICalString() {
+        val calendar = vCalendar {
+            prodId("-//Test//EN")
+            event { summary("Test Event") }
+        }
+        val buffer = Buffer()
+        calendar.writeTo(buffer)
+        assertEquals(calendar.toICalString(), buffer.readString())
+    }
+
+    @Test
+    fun writeToSinkWithConfigMatchesToICalString() {
+        val calendar = vCalendar { prodId("-//Test//EN") }
+        val config = Config(useCrLf = false, foldLines = false)
+        val buffer = Buffer()
+        calendar.writeTo(buffer, config)
+        assertEquals(calendar.toICalString(config), buffer.readString())
+    }
+
+    @Test
+    fun listWriteToSinkMatchesToICalString() {
+        val calendars = listOf(
+            vCalendar { prodId("Cal1") },
+            vCalendar { prodId("Cal2") }
+        )
+        val buffer = Buffer()
+        calendars.writeTo(buffer)
+        assertEquals(calendars.toICalString(), buffer.readString())
+    }
+
+    @Test
+    fun writeToSinkIsIdempotent() {
+        val calendar = vCalendar { prodId("-//Test//EN") }
+        val buffer1 = Buffer()
+        val buffer2 = Buffer()
+        calendar.writeTo(buffer1)
+        calendar.writeTo(buffer2)
+        assertEquals(buffer1.readString(), buffer2.readString())
+    }
+
+    @Test
+    fun writeToAlreadyBufferedSinkDoesNotCorruptOutput() {
+        val calendar = vCalendar { prodId("-//Test//EN") }
+        val buffer = Buffer()
+        calendar.writeTo(buffer)
+        assertEquals(calendar.toICalString(), buffer.readString())
     }
 }

@@ -3,19 +3,43 @@ package net.alphadev.icalendar.export
 import net.alphadev.icalendar.model.ICalComponent
 import net.alphadev.icalendar.model.ICalProperty
 import net.alphadev.icalendar.model.VCalendar
+import kotlinx.io.Buffer
+import kotlinx.io.Sink
+import kotlinx.io.buffered
+import kotlinx.io.writeString
+import kotlinx.io.readString
 
 public data class Config(
     val useCrLf: Boolean = true,
     val foldLines: Boolean = true
 )
 
-public fun VCalendar.toICalString(config: Config = Config()): String = buildString {
-    writeComponent(ensureVersion(this@toICalString), config)
+public fun VCalendar.toICalString(config: Config = Config()): String {
+    val buffer = Buffer()
+    buffer.writeCalendar(this, config)
+    return buffer.readString()
 }
 
 public fun List<VCalendar>.toICalString(config: Config = Config()): String {
-    return joinToString(separator = "\n") { it.toICalString(config) }
+    val buffer = Buffer()
+    forEach { buffer.writeCalendar(it, config) }
+    return buffer.readString()
 }
+
+public fun VCalendar.writeTo(sink: Sink, config: Config = Config()) {
+    val buffered = sink.buffered()
+    buffered.writeCalendar(this, config)
+    buffered.flush()
+}
+
+public fun List<VCalendar>.writeTo(sink: Sink, config: Config = Config()) {
+    val buffered = sink.buffered()
+    forEach { buffered.writeCalendar(it, config) }
+    buffered.flush()
+}
+
+private fun Sink.writeCalendar(calendar: VCalendar, config: Config) =
+    writeComponent(ensureVersion(calendar), config)
 
 private fun ensureVersion(calendar: VCalendar): VCalendar {
     val hasVersion = calendar.properties.any { it.name.equals("VERSION", ignoreCase = true) }
@@ -24,7 +48,7 @@ private fun ensureVersion(calendar: VCalendar): VCalendar {
     return VCalendar(properties, calendar.components)
 }
 
-private fun StringBuilder.writeComponent(component: ICalComponent, config: Config) {
+private fun Sink.writeComponent(component: ICalComponent, config: Config) {
     writeLine("BEGIN:${component.componentName}", config)
     for (property in component.properties) {
         writeProperty(property, config)
@@ -35,9 +59,15 @@ private fun StringBuilder.writeComponent(component: ICalComponent, config: Confi
     writeLine("END:${component.componentName}", config)
 }
 
-private fun StringBuilder.writeProperty(property: ICalProperty, config: Config) {
-    val line = buildContentLine(property)
-    writeLine(line, config)
+private fun Sink.writeProperty(property: ICalProperty, config: Config) {
+    writeLine(buildContentLine(property), config)
+}
+
+private fun Sink.writeLine(line: String, config: Config) {
+    val lineEnding = if (config.useCrLf) "\r\n" else "\n"
+    val outputLine = if (config.foldLines) LineFolding.fold(line) else line
+    writeString(outputLine)
+    writeString(lineEnding)
 }
 
 private fun buildContentLine(property: ICalProperty): String = buildString {
@@ -65,13 +95,6 @@ private fun escapePropertyValue(value: String): String {
         .replace("\r", "")
         .replace(",", "\\,")
         .replace(";", "\\;")
-}
-
-private fun StringBuilder.writeLine(line: String, config: Config) {
-    val lineEnding = if (config.useCrLf) "\r\n" else "\n"
-    val outputLine = if (config.foldLines) LineFolding.fold(line) else line
-    append(outputLine)
-    append(lineEnding)
 }
 
 private val PARAM_UNSAFE_CHARS = setOf(':', ';', ',', '"', '\n', '\r')
