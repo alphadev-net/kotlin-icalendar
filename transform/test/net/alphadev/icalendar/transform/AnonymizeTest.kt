@@ -37,12 +37,38 @@ class AnonymizeTest {
     }
 
     @Test
+    fun stripsOrganizer() {
+        val event = basicEvent().apply { organizer("boss@example.com", "The Boss") }.build()
+        val result = event.anonymize()
+        assertFalse(result.properties.any { it.name == "ORGANIZER" })
+    }
+
+    @Test
+    fun stripsAllAttendees() {
+        val event = basicEvent().apply {
+            attendee("alice@example.com", "Alice")
+            attendee("bob@example.com", "Bob")
+        }.build()
+        val result = event.anonymize()
+        assertFalse(result.properties.any { it.name == "ATTENDEE" })
+    }
+
+    @Test
     fun retainsSafeProperties() {
         val event = basicEvent().apply { summary("Should be removed") }.build()
         val result = event.anonymize()
         assertFalse(result.properties.any { it.name == "SUMMARY" })
+        assertTrue(result.properties.any { it.name == "UID" })
+        assertTrue(result.properties.any { it.name == "DTSTAMP" })
         assertTrue(result.properties.any { it.name == "DTSTART" })
         assertTrue(result.properties.any { it.name == "DTEND" })
+    }
+
+    @Test
+    fun eventWithoutSensitiveDataIsUnchanged() {
+        val event = basicEvent().build()
+        val result = event.anonymize()
+        assertEquals(event.properties, result.properties)
     }
 
     @Test

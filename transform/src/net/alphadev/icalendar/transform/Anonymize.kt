@@ -10,7 +10,13 @@ fun VEvent.anonymize(): VEvent {
     )
 }
 
+private val ANONYMIZED_PROPERTIES = setOf(
+    "SUMMARY",
+    "DESCRIPTION",
+    "LOCATION",
+    "ORGANIZER",
+    "ATTENDEE"
+)
+
 private fun anonymizeProperties(properties: List<ICalProperty>) = properties
-    .filterNot { it.name == "SUMMARY" }
-    .filterNot { it.name == "DESCRIPTION" }
-    .filterNot { it.name == "LOCATION" }
+    .filterNot { it.name in ANONYMIZED_PROPERTIES }
