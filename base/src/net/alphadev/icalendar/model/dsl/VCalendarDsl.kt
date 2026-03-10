@@ -26,5 +26,9 @@ class VCalendarBuilder: IComponentBuilder() {
         components.add(VTodoBuilder().apply(block).build())
     }
 
+    fun freeBusy(block: VFreeBusyBuilder.() -> Unit) {
+        components.add(VFreeBusyBuilder().apply(block).build())
+    }
+
     fun build(): VCalendar = VCalendar(properties.toList(), components.toList())
 }

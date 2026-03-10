@@ -2,41 +2,49 @@ package net.alphadev.icalendar.model
 
 import kotlin.time.Instant
 
-data class VFreeBusy(
+public enum class FreeBusyType { BUSY, FREE, BUSY_UNAVAILABLE, BUSY_TENTATIVE }
+
+public data class VFreeBusy(
     override val properties: List<ICalProperty>,
     override val components: List<ICalComponent>
 ) : ICalComponent {
     override val componentName: String = NAME
 
-    companion object {
-        const val NAME = "VFREEBUSY"
+    public companion object {
+        public const val NAME = "VFREEBUSY"
     }
 }
 
 // Common properties
-val VFreeBusy.uid: String?
+public val VFreeBusy.uid: String?
     get() = properties.firstOrNull { it.name == "UID" }?.value
 
-val VFreeBusy.dtStartProperty: ICalProperty?
+public val VFreeBusy.dtStartProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTSTART" }
 
-val VFreeBusy.dtEndProperty: ICalProperty?
+public val VFreeBusy.dtEndProperty: ICalProperty?
     get() = properties.firstOrNull { it.name == "DTEND" }
 
-val VFreeBusy.dtStart: Instant?
+public val VFreeBusy.dtStampProperty: ICalProperty?
+    get() = properties.firstOrNull { it.name == "DTSTAMP" }
+
+public val VFreeBusy.dtStart: Instant?
     get() = dtStartProperty?.instant
 
-val VFreeBusy.dtEnd: Instant?
+public val VFreeBusy.dtEnd: Instant?
     get() = dtEndProperty?.instant
 
-val VFreeBusy.organizer: String?
+public val VFreeBusy.dtStamp: Instant?
+    get() = dtStampProperty?.instant
+
+public val VFreeBusy.organizer: String?
     get() = properties.firstOrNull { it.name == "ORGANIZER" }?.value
 
-val VFreeBusy.attendees: List<String>
+public val VFreeBusy.attendees: List<String>
     get() = properties.filter { it.name == "ATTENDEE" }.map { it.value }
 
-val VFreeBusy.url: String?
+public val VFreeBusy.url: String?
     get() = properties.firstOrNull { it.name == "URL" }?.value
 
-val VFreeBusy.freeBusyPeriods: List<String>
+public val VFreeBusy.freeBusyPeriods: List<String>
     get() = properties.filter { it.name == "FREEBUSY" }.map { it.value }
