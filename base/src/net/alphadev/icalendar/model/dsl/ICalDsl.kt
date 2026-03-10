@@ -12,9 +12,17 @@ public fun vCalendar(block: VCalendarBuilder.() -> Unit): VCalendar {
 @DslMarker
 annotation class ICalDsl
 
-internal class IComponentBuilder {
-    internal val properties = mutableListOf<ICalProperty>()
-    internal val components = mutableListOf<ICalComponent>()
+internal class IComponentBuilder(
+    properties: List<ICalProperty> = emptyList(),
+    components: List<ICalComponent> = emptyList()
+) {
+    internal val properties: MutableList<ICalProperty> = mutableListOf<ICalProperty>().apply {
+        addAll(properties)
+    }
+
+    internal val components: MutableList<ICalComponent> = mutableListOf<ICalComponent>().apply {
+        addAll(components)
+    }
 
     internal fun xProperty(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
         val propertyName = if (name.startsWith("X-", ignoreCase = true)) name else "X-$name"

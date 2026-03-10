@@ -11,15 +11,16 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @ICalDsl
-public class VEventBuilder {
-
-    private val builderState = IComponentBuilder()
-
-    init {
+public class VEventBuilder internal constructor(
+    initial: IComponentBuilder
+) {
+    public constructor(): this(IComponentBuilder()) {
         val now = Clock.System.now()
         builderState.propertyWithInstant("DTSTAMP", now.formatUtc(), instant = now)
         builderState.property("UID", Uuid.random().toString())
     }
+
+    private val builderState = initial
 
     public fun uid(value: String) {
         builderState.property("UID", value)
@@ -96,6 +97,10 @@ public class VEventBuilder {
 
     public fun duration(value: Duration) {
         builderState.property("DURATION", value.toIsoString())
+    }
+
+    public fun alarm(alarm: VAlarm) {
+        builderState.components.add(alarm)
     }
 
     public fun alarm(block: VAlarmBuilder.() -> Unit) {

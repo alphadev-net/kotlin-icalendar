@@ -3,12 +3,12 @@ package net.alphadev.icalendar.transform
 import net.alphadev.icalendar.model.VAlarm
 import net.alphadev.icalendar.model.VEvent
 import net.alphadev.icalendar.model.dsl.VAlarmBuilder
+import net.alphadev.icalendar.model.dsl.builder
 
-fun VEvent.addAlarm(alarm: VAlarm): VEvent {
-    return copy(components = components + alarm)
+public fun VEvent.addAlarm(alarm: VAlarm): VEvent = builder {
+    it.alarm(alarm)
 }
 
-fun VEvent.addAlarm(block: VAlarmBuilder.() -> Unit): VEvent {
-    val alarm = VAlarmBuilder().apply(block).build()
-    return copy(components = components + alarm)
+public fun VEvent.addAlarm(block: VAlarmBuilder.() -> Unit): VEvent = builder {
+    it.alarm(block)
 }
