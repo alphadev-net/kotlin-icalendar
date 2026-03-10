@@ -5,7 +5,7 @@ import kotlinx.datetime.toLocalDateTime
 import net.alphadev.icalendar.model.*
 import kotlin.time.Duration
 
-fun VEvent.offsetTimesBy(duration: Duration): VEvent {
+public fun VEvent.offsetTimesBy(duration: Duration): VEvent {
     val updatedProperties = properties.map { property ->
         when (property.name) {
             "DTSTART", "DTEND" -> {

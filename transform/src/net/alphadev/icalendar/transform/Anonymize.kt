@@ -12,7 +12,7 @@ private val PrivacyRedacted = setOf(
     "ATTENDEE"
 )
 
-fun VEvent.anonymize(filter: Set<String> = PrivacyRedacted): VEvent {
+public fun VEvent.anonymize(filter: Set<String> = PrivacyRedacted): VEvent {
     return copy(
         properties = anonymizeProperties(properties, filter),
         components = components,
@@ -20,20 +20,37 @@ fun VEvent.anonymize(filter: Set<String> = PrivacyRedacted): VEvent {
 }
 
 @ICalDsl
-class AnonymizeFilter {
+public class AnonymizeFilter {
     private val properties = mutableSetOf<String>()
 
-    fun summary() = properties.add("SUMMARY")
-    fun description() = properties.add("DESCRIPTION")
-    fun location() = properties.add("LOCATION")
-    fun organizer() = properties.add("ORGANIZER")
-    fun attendee() = properties.add("ATTENDEE")
-    fun privacyRedacted() = properties.addAll(PrivacyRedacted)
+    public fun summary(): Boolean {
+        return properties.add("SUMMARY")
+    }
+
+    public fun description(): Boolean {
+        return properties.add("DESCRIPTION")
+    }
+
+    public fun location(): Boolean {
+        return properties.add("LOCATION")
+    }
+
+    public fun organizer(): Boolean {
+        return properties.add("ORGANIZER")
+    }
+
+    public fun attendee(): Boolean {
+        return properties.add("ATTENDEE")
+    }
+
+    public fun privacyRedacted(): Boolean {
+        return properties.addAll(PrivacyRedacted)
+    }
 
     internal fun build(): Set<String> = properties.toSet()
 }
 
-fun VEvent.anonymize(block: AnonymizeFilter.() -> Unit): VEvent =
+public fun VEvent.anonymize(block: AnonymizeFilter.() -> Unit): VEvent =
     anonymize(AnonymizeFilter().apply(block).build())
 
 private fun anonymizeProperties(properties: List<ICalProperty>, filterList: Set<String>) = properties

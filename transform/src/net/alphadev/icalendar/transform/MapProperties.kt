@@ -2,7 +2,7 @@ package net.alphadev.icalendar.transform
 
 import net.alphadev.icalendar.model.*
 
-inline fun <reified T : ICalComponent> T.mapProperties(transform: (ICalProperty) -> ICalProperty?): T {
+public inline fun <reified T : ICalComponent> T.mapProperties(transform: (ICalProperty) -> ICalProperty?): T {
     return when (this) {
         is VEvent -> copy(properties = properties.mapNotNull(transform))
         is VTodo -> copy(properties = properties.mapNotNull(transform))
@@ -13,7 +13,7 @@ inline fun <reified T : ICalComponent> T.mapProperties(transform: (ICalProperty)
     } as T
 }
 
-inline fun <reified T : ICalComponent> T.flatMapProperties(transform: (ICalProperty) -> List<ICalProperty>): T {
+public inline fun <reified T : ICalComponent> T.flatMapProperties(transform: (ICalProperty) -> List<ICalProperty>): T {
     return when (this) {
         is VEvent -> copy(properties = properties.flatMap(transform))
         is VTodo -> copy(properties = properties.flatMap(transform))

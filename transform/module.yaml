@@ -9,6 +9,8 @@ settings:
   publishing:
     name: kotlin-icalendar-transformations
   kotlin:
+    freeCompilerArgs:
+      - -Xexplicit-api=warning
     optIns:
       - kotlin.time.ExperimentalTime
       - kotlin.uuid.ExperimentalUuidApi

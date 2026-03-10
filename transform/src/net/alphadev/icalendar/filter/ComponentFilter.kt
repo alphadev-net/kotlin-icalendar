@@ -2,19 +2,19 @@ package net.alphadev.icalendar.filter
 
 import net.alphadev.icalendar.model.*
 
-fun VCalendar.filter(condition: (ICalComponent) -> Boolean): VCalendar {
+public fun VCalendar.filter(condition: (ICalComponent) -> Boolean): VCalendar {
     return copy(components = components.filter(condition))
 }
 
-fun VCalendar.filterEvents(condition: (VEvent) -> Boolean): VCalendar {
+public fun VCalendar.filterEvents(condition: (VEvent) -> Boolean): VCalendar {
     return filterType<VEvent>(condition)
 }
 
-fun VCalendar.filterJournals(condition: (VJournal) -> Boolean): VCalendar {
+public fun VCalendar.filterJournals(condition: (VJournal) -> Boolean): VCalendar {
     return filterType<VJournal>(condition)
 }
 
-fun VCalendar.filterTodos(condition: (VTodo) -> Boolean): VCalendar {
+public fun VCalendar.filterTodos(condition: (VTodo) -> Boolean): VCalendar {
     return filterType<VTodo>(condition)
 }
 
