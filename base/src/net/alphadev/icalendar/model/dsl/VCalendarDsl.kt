@@ -6,39 +6,51 @@ public enum class EventStatus { TENTATIVE, CONFIRMED, CANCELLED }
 public enum class Transparency { OPAQUE, TRANSPARENT }
 
 @ICalDsl
-public class VCalendarBuilder: IComponentBuilder() {
+public class VCalendarBuilder {
 
-    init { property("VERSION", "2.0") }
+    private val builderState = IComponentBuilder()
+
+    init {
+        version("2.0")
+    }
+
+    public fun version(value: String) {
+        builderState.property("VERSION", value)
+    }
+
+    public fun summary(value: String) {
+        builderState.property("SUMMARY", value)
+    }
 
     public fun prodId(value: String) {
-        property("PRODID", value)
+        builderState.property("PRODID", value)
     }
 
     public fun calScale(value: String) {
-        property("CALSCALE", value)
+        builderState.property("CALSCALE", value)
     }
 
     public fun method(value: String) {
-        property("METHOD", value)
+        builderState.property("METHOD", value)
     }
 
     public fun event(block: VEventBuilder.() -> Unit) {
-        components.add(VEventBuilder().apply(block).build())
+        builderState.components.add(VEventBuilder().apply(block).build())
     }
 
     public fun journal(block: VJournalBuilder.() -> Unit) {
-        components.add(VJournalBuilder().apply(block).build())
+        builderState.components.add(VJournalBuilder().apply(block).build())
     }
 
     public fun todo(block: VTodoBuilder.() -> Unit) {
-        components.add(VTodoBuilder().apply(block).build())
+        builderState.components.add(VTodoBuilder().apply(block).build())
     }
 
     public fun freeBusy(block: VFreeBusyBuilder.() -> Unit) {
-        components.add(VFreeBusyBuilder().apply(block).build())
+        builderState.components.add(VFreeBusyBuilder().apply(block).build())
     }
 
-    public fun build(): VCalendar {
-        return VCalendar(properties.toList(), components.toList())
+    fun build(): VCalendar {
+        return VCalendar(builderState.properties.toList(), builderState.components.toList())
     }
 }

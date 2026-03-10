@@ -12,21 +12,21 @@ public fun vCalendar(block: VCalendarBuilder.() -> Unit): VCalendar {
 @DslMarker
 annotation class ICalDsl
 
-internal abstract class IComponentBuilder {
-    protected val properties = mutableListOf<ICalProperty>()
-    protected val components = mutableListOf<ICalComponent>()
+internal class IComponentBuilder {
+    internal val properties = mutableListOf<ICalProperty>()
+    internal val components = mutableListOf<ICalComponent>()
 
-    fun xProperty(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
-        require(name.startsWith("X-", ignoreCase = true)) { "Extension properties must start with X-" }
-        property(name, value, parameters)
+    internal fun xProperty(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
+        val propertyName = if (name.startsWith("X-", ignoreCase = true)) name else "X-$name"
+        property(propertyName, value, parameters)
     }
 
-    fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
+    internal fun property(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
         properties.removeAll { it.name.equals(name, ignoreCase = true) }
         properties.add(ICalProperty(name.uppercase(), parameters, value))
     }
 
-    protected fun propertyWithInstant(
+    internal fun propertyWithInstant(
         name: String,
         value: String,
         parameters: Map<String, List<String>> = emptyMap(),

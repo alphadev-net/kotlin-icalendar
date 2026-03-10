@@ -1,10 +1,12 @@
 package net.alphadev.icalendar.export
 
+import kotlinx.datetime.LocalDateTime
 import net.alphadev.icalendar.model.dsl.vCalendar
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 class ICalWriterTest {
 
@@ -27,7 +29,7 @@ class ICalWriterTest {
         val calendar = vCalendar {
             event {
                 summary("Test Event")
-                property("DTSTART", "20240101T120000Z")
+                dtStart(Instant.parse("2024-01-01T12:00:00Z"))
             }
         }
 
@@ -45,22 +47,20 @@ class ICalWriterTest {
     fun writesPropertyWithParameters() {
         val calendar = vCalendar {
             event {
-                property("DTSTART", "20240101T120000",
-                    mapOf("TZID" to listOf("America/New_York"), "VALUE" to listOf("DATE-TIME")))
+                dtStart(LocalDateTime(2024, 1, 1, 12, 0), "America/New_York")
             }
         }
 
         val result = calendar.toICalString()
 
-        assertContains(result, "DTSTART;TZID=America/New_York;VALUE=DATE-TIME:20240101T120000")
+        assertContains(result, "DTSTART;TZID=America/New_York:20240101T120000")
     }
 
     @Test
     fun quotesParameterValuesWithUnsafeChars() {
         val calendar = vCalendar {
             event {
-                property("ATTENDEE", "mailto:john@example.com",
-                    mapOf("CN" to listOf("John Doe, Manager")))
+                attendee("john@example.com", "John Doe, Manager")
             }
         }
 
@@ -73,8 +73,7 @@ class ICalWriterTest {
     fun quotesParameterValuesWithColons() {
         val calendar = vCalendar {
             event {
-                property("ATTENDEE", "mailto:test@example.com",
-                    mapOf("CN" to listOf("Company: Inc")))
+                attendee("test@example.com", "Company: Inc")
             }
         }
 
@@ -87,8 +86,9 @@ class ICalWriterTest {
     fun handlesMultipleParameterValues() {
         val calendar = vCalendar {
             event {
-                property("CATEGORIES", "MEETING",
-                    mapOf("LANGUAGE" to listOf("en", "fr", "de")))
+                categories("MEETING") {
+                    value("LANGUAGE", listOf("en", "fr", "de"))
+                }
             }
         }
 
@@ -344,7 +344,7 @@ class ICalWriterTest {
     fun doesNotDuplicateVersion() {
         // If VERSION already exists, don't add another
         val calendar = vCalendar {
-            property("VERSION", "2.0")
+            version("2.0")
         }
 
         val result = calendar.toICalString()
@@ -355,7 +355,7 @@ class ICalWriterTest {
     @Test
     fun propertyWithNoValue() {
         val calendar = vCalendar {
-            property("SUMMARY", "")
+            summary("")
         }
 
         val result = calendar.toICalString()

@@ -13,64 +13,70 @@ public enum class JournalStatus { DRAFT, FINAL, CANCELLED }
 public enum class JournalClass { PUBLIC, PRIVATE, CONFIDENTIAL }
 
 @ICalDsl
-public class VJournalBuilder: IComponentBuilder() {
+public class VJournalBuilder {
+
+    private val builderState = IComponentBuilder()
 
     init {
         val now = Clock.System.now()
-        propertyWithInstant("DTSTAMP", now.formatUtc(), instant = now)
-        property("UID", Uuid.random().toString())
+        builderState.propertyWithInstant("DTSTAMP", now.formatUtc(), instant = now)
+        builderState.property("UID", Uuid.random().toString())
     }
 
     public fun uid(value: String) {
-        property("UID", value)
+        builderState.property("UID", value)
     }
 
     public fun summary(value: String) {
-        property("SUMMARY", value)
+        builderState.property("SUMMARY", value)
     }
 
     public fun description(value: String) {
-        property("DESCRIPTION", value)
+        builderState.property("DESCRIPTION", value)
     }
 
     public fun dtStart(value: LocalDateTime, timeZone: TimeZone = TimeZone.UTC) {
-        propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
+        builderState.propertyWithInstant("DTSTART", value.formatICalDateTime(), instant = value.toInstant(timeZone))
     }
 
     public fun dtStart(value: LocalDateTime, tzid: String) {
         val tz = try { TimeZone.of(tzid) } catch (_: Exception) { TimeZone.UTC }
         val instant = value.toInstant(tz)
-        propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
+        builderState.propertyWithInstant("DTSTART", value.formatICalDateTime(), mapOf("TZID" to listOf(tzid)), instant)
     }
 
     public fun dtStart(value: Instant) {
-        propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
+        builderState.propertyWithInstant("DTSTART", value.formatUtc(), instant = value)
     }
 
     fun dtStartDate(value: LocalDate) {
         val midnight = LocalDateTime(value.year, value.month, value.day, 0, 0)
         val instant = midnight.toInstant(TimeZone.UTC)
-        propertyWithInstant("DTSTART", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
+        builderState.propertyWithInstant("DTSTART", value.formatICalDate(), mapOf("VALUE" to listOf("DATE")), instant)
     }
 
     public fun status(value: JournalStatus) {
-        property("STATUS", value.name)
+        builderState.property("STATUS", value.name)
     }
 
     public fun classType(value: JournalClass) {
-        property("CLASS", value.name)
+        builderState.property("CLASS", value.name)
     }
 
     public fun attendee(email: String, name: String? = null, params: Map<String, List<String>> = emptyMap()) {
         val combinedParams = if (name != null) params + ("CN" to listOf(name)) else params
-        property("ATTENDEE", "mailto:$email", combinedParams)
+        builderState.property("ATTENDEE", "mailto:$email", combinedParams)
     }
 
     public fun attach(uri: String) {
-        property("ATTACH", uri)
+        builderState.property("ATTACH", uri)
     }
 
-    public fun build(): VJournal {
-        return VJournal(properties.toList(), components.toList())
+    public fun xProperty(name: String, value: String, parameters: Map<String, List<String>> = emptyMap()) {
+        builderState.xProperty(name, value, parameters)
+    }
+
+    fun build(): VJournal {
+        return VJournal(builderState.properties.toList(), builderState.components.toList())
     }
 }
