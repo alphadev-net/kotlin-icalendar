@@ -69,7 +69,7 @@ public class VAlarmBuilder {
         builderState.property("DURATION", interval.toIsoString())
     }
 
-    fun build(): VAlarm {
+    internal fun build(): VAlarm {
         return VAlarm(builderState.properties.toList())
     }
 }

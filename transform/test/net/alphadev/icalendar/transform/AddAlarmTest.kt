@@ -1,9 +1,9 @@
 package net.alphadev.icalendar.transform
 
 import net.alphadev.icalendar.model.*
-import net.alphadev.icalendar.model.dsl.VAlarmBuilder
 import net.alphadev.icalendar.model.dsl.vCalendar
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.minutes
 
 class VEventAlarmTest {
@@ -22,28 +22,6 @@ class VEventAlarmTest {
             triggerBefore(15.minutes)
             description("Reminder")
         }
-
-        assertEquals(1, result.alarms.size)
-        assertEquals(AlarmAction.DISPLAY, result.alarms.first().action)
-        assertEquals("Reminder", result.alarms.first().description)
-    }
-
-    @Test
-    fun addAlarmWithVAlarmAddsAlarmToEvent() {
-        val cal = vCalendar {
-            event {
-                uid("test-1")
-                summary("Meeting")
-            }
-        }
-
-        val alarm = VAlarmBuilder().apply {
-            displayAction()
-            triggerBefore(15.minutes)
-            description("Reminder")
-        }.build()
-
-        val result = cal.events.first().addAlarm(alarm)
 
         assertEquals(1, result.alarms.size)
         assertEquals(AlarmAction.DISPLAY, result.alarms.first().action)
